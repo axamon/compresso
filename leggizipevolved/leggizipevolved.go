@@ -1,7 +1,10 @@
 package leggizipevolved
 
 import (
-	gzip "github.com/klauspost/pgzip"
+	"io"
+
+	"github.com/klauspost/pgzip"
+
 	//"compress/gzip"
 	"encoding/csv"
 	"fmt"
@@ -9,13 +12,13 @@ import (
 	"os"
 )
 
-func main() {
-	f, err := os.Open("data.csv.gz")
+func LeggizipEvolved(file string) {
+	f, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	gr, err := gzip.NewReader(f)
+	gr, err := pgzip.NewReaderN(f, 4096, 10000)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,13 +26,17 @@ func main() {
 
 	cr := csv.NewReader(gr)
 
-	cr.Comma = ';' //specifica il delimitatore dei campi
-	rec, err := cr.Read()
-	if err != nil {
-		log.Fatal(err)
+	cr.Comma = ' '          //specifica il delimitatore dei campi
+	cr.FieldsPerRecord = -1 //accetta numero di campi variabili
+	cr.Comment = '#'
+	//cr.Comma = delimiter //specifica il delimitatore dei campi
+	cr.LazyQuotes = true
+	for {
+		rec, err := cr.Read()
+		if err == io.EOF {
+			break
+		}
+		fmt.Println(rec)
 	}
-
-	for _, v := range rec {
-		fmt.Printf(v + " ")
-	}
+	return
 }

@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	leggizip.Leggizip("we_ingest.gz")
+	leggizip.Leggizip("we_ingestlog.gz")
 }

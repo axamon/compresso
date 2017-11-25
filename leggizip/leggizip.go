@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"os"
 )
@@ -22,13 +23,17 @@ func Leggizip(file string) {
 
 	cr := csv.NewReader(gr)
 
-	cr.Comma = ';' //specifica il delimitatore dei campi
-	rec, err := cr.Read()
-	if err != nil {
-		log.Fatal(err)
+	cr.Comma = ' '          //specifica il delimitatore dei campi
+	cr.FieldsPerRecord = -1 //accetta numero di campi variabili
+	cr.Comment = '#'
+	//cr.Comma = delimiter //specifica il delimitatore dei campi
+	cr.LazyQuotes = true
+	for {
+		rec, err := cr.Read()
+		if err == io.EOF {
+			break
+		}
+		fmt.Println(rec)
 	}
-
-	for _, v := range rec {
-		fmt.Printf(v + " ")
-	}
+	return
 }
