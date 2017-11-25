@@ -1,9 +1,10 @@
 package main
 
 import (
-	"compresso/leggizip"
+	"compresso/leggizipevolved"
+	"os"
 )
 
 func main() {
-	leggizip.Leggizip("we_ingestlog.gz")
+	leggizipevolved.LeggizipEvolved(os.Args[1])
 }

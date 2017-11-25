@@ -7,7 +7,6 @@ go:
 
 os:
   - linux
-  - windows
 
 before_install:
   - go get -v github.com/klauspost/pgzip
