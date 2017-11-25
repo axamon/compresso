@@ -18,8 +18,18 @@ func Leggizip(file string) {
 	gr, err := gzip.NewReader(f)
 	if err != nil {
 		log.Fatal(err)
+		continue
 	}
 	defer gr.Close()
+
+	// scanner := bufio.NewScanner(gr)
+
+	// 		scanner.Split(bufio.ScanLines)
+
+	// 		for scanner.Scan() {
+	// 			fmt.Println(scanner.Text())
+	// 			strchan <- scanner.Text()
+	// 		}
 
 	cr := csv.NewReader(gr)
 
@@ -33,6 +43,7 @@ func Leggizip(file string) {
 		if err == io.EOF {
 			break
 		}
+
 		fmt.Println(rec)
 	}
 	return
