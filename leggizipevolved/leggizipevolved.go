@@ -1,7 +1,8 @@
-package main
+package leggizipevolved
 
 import (
-	"compress/gzip"
+	gzip "github.com/klauspost/pgzip"
+	//"compress/gzip"
 	"encoding/csv"
 	"fmt"
 	"log"
