@@ -4,3 +4,6 @@ go:
   - 1.8
   - 1.9
   - master
+
+ before_install:
+  - go get -v github.com/klauspost/pgzip
