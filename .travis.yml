@@ -5,5 +5,9 @@ go:
   - 1.9
   - master
 
+os:
+  - linux
+  - windows
+
 before_install:
   - go get -v github.com/klauspost/pgzip
