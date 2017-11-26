@@ -1,8 +1,7 @@
 package main
 
 import (
-	"compresso/leggizip"
-	"compresso/leggizipevolved"
+	"sync"
 	"testing"
 )
 
@@ -13,11 +12,9 @@ import (
 // }
 
 func BenchmarkLeggizip(b *testing.B) {
+	var wg sync.WaitGroup
 	for n := 0; n < b.N; n++ {
-		leggizip.Leggizip("we_ingestlog.gz")
+		wg.Add(1)
+		leggizip("we_ingestlog.gz", &wg)
 	}
-}
-
-func BenchmarkLeggizipEvolved(b *testing.B) {
-	leggizipevolved.LeggizipEvolved("we_ingestlog.gz")
 }

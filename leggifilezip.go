@@ -3,12 +3,12 @@ package main
 import (
 
 	//"compress/gzip"
+
 	"encoding/csv"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"runtime"
 	"sync"
 
 	"github.com/klauspost/pgzip"
@@ -16,8 +16,9 @@ import (
 
 var wg sync.WaitGroup
 
-func leggizip(file string) error {
-	runtime.GOMAXPROCS(1)
+func leggizip(file string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	//runtime.GOMAXPROCS(1)
 	// runtime.NumCPU()
 	f, err := os.Open(file)
 	if err != nil {
@@ -25,8 +26,8 @@ func leggizip(file string) error {
 	}
 	defer f.Close()
 
-	//gr, err := gzip.NewReader(f)
-	gr, err := pgzip.NewReaderN(f, 4096, 10000)
+	// gr, err := gzip.NewReader(f)
+	gr, err := pgzip.NewReaderN(f, 4096, 100)
 
 	if err != nil {
 		log.Fatal(err)
@@ -47,8 +48,7 @@ func leggizip(file string) error {
 
 		fmt.Println(rec)
 	}
-	wg.Done()
-	return nil
+	return
 }
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
 		fmt.Println(file)
 		wg.Add(1)
 		// go leggizipEvolved(file)
-		go leggizip(file)
+		go leggizip(file, &wg)
 		//Leggi(file)
 	}
 	wg.Wait()
