@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"net/url"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -105,8 +106,8 @@ func leggizip2(file string, wg *sync.WaitGroup) {
 
 func leggizip(file string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	//runtime.GOMAXPROCS(1)
-	// runtime.NumCPU()
+	runtime.GOMAXPROCS(runtime.NumCPU()) //esegue una go routine per processore fisico
+
 	f, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)
