@@ -9,3 +9,6 @@ os:
 
 before_install:
   - go get -v github.com/klauspost/pgzip
+
+script:
+  - go test -bench=Leggizip
