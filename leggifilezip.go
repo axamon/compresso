@@ -1,13 +1,16 @@
 package main
 
 import (
+	"crypto/md5"
 	"net/url"
+	"strconv"
 	"time"
 
 	//"compress/gzip"
 
 	"bufio"
 	"encoding/csv"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -36,6 +39,7 @@ type Acesslog struct {
 }
 
 type Ingestlog struct {
+	Hash             string
 	Time             string
 	URL              string
 	Urlschema        string
@@ -64,7 +68,7 @@ type Ingestlog struct {
 
 var wg sync.WaitGroup
 
-func leggizip(file string, wg *sync.WaitGroup) {
+func leggizip2(file string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	//runtime.GOMAXPROCS(1)
 	// runtime.NumCPU()
@@ -99,7 +103,7 @@ func leggizip(file string, wg *sync.WaitGroup) {
 	return
 }
 
-func leggizip2(file string, wg *sync.WaitGroup) {
+func leggizip(file string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	//runtime.GOMAXPROCS(1)
 	// runtime.NumCPU()
@@ -125,6 +129,10 @@ func leggizip2(file string, wg *sync.WaitGroup) {
 		if len(s) < 20 {
 			continue
 		}
+
+		hasher := md5.New()
+		hasher.Write([]byte(line))
+		l.Hash = hex.EncodeToString(hasher.Sum(nil))
 		//gestiamo il tempo
 		t, err := time.Parse("02/Jan/2006:15:04:05", s[0][1:len(s[0])-7])
 		if err != nil {
@@ -145,6 +153,11 @@ func leggizip2(file string, wg *sync.WaitGroup) {
 		l.Urlfragment = u.Fragment
 		//gestione url finita
 		l.ServerIP = s[3]
+		l.BytesRead, _ = strconv.Atoi(s[4])
+		l.BytesToRead, _ = strconv.Atoi(s[5])
+		l.AssetSize, _ = strconv.Atoi(s[6])
+		l.Status = s[10]
+		l.IngestStatus = s[15]
 		fmt.Printf("%#v\n", l)
 
 	}
@@ -157,7 +170,7 @@ func main() {
 		fmt.Println(file)
 		wg.Add(1)
 		// go leggizipEvolved(file)
-		go leggizip2(file, &wg)
+		go leggizip(file, &wg)
 		//Leggi(file)
 	}
 	wg.Wait()
