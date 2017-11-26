@@ -1,54 +1,63 @@
 package main
 
 import (
-	"bufio"
-	"strings"
 
-	gzip "github.com/klauspost/pgzip"
 	//"compress/gzip"
+	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"runtime"
 	"sync"
+
+	"github.com/klauspost/pgzip"
 )
 
 var wg sync.WaitGroup
 
-func leggizip(file string) {
-	// runtime.GOMAXPROCS(2)
+func leggizip(file string) error {
+	runtime.GOMAXPROCS(1)
+	// runtime.NumCPU()
 	f, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	gr, err := gzip.NewReader(f)
+
+	//gr, err := gzip.NewReader(f)
+	gr, err := pgzip.NewReaderN(f, 4096, 10000)
 
 	if err != nil {
 		log.Fatal(err)
-
+		os.Exit(1)
 	}
-	defer gr.Close()
-	scanner := bufio.NewScanner(gr)
+	cr := csv.NewReader(gr)
 
-	scanner.Split(bufio.ScanLines)
+	cr.Comma = ' '          //specifica il delimitatore dei campi
+	cr.FieldsPerRecord = -1 //accetta numero di campi variabili
+	cr.Comment = '#'
+	//cr.Comma = delimiter //specifica il delimitatore dei campi
+	cr.LazyQuotes = true
+	for {
+		rec, err := cr.Read()
+		if err == io.EOF {
+			break
+		}
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		_ = strings.Split(line, " ")
-		//fmt.Println(s)
-		// strchan <- scanner.Text()
+		fmt.Println(rec)
 	}
-
 	wg.Done()
-	return
+	return nil
 }
 
 func main() {
-	for _, file := range os.Args[:] {
+	for _, file := range os.Args[1:] {
 		fmt.Println(file)
 		wg.Add(1)
 		// go leggizipEvolved(file)
-		leggizip(file)
+		go leggizip(file)
+		//Leggi(file)
 	}
 	wg.Wait()
 	return
