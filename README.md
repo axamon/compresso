@@ -1,3 +1,9 @@
 # compresso 
 Test per deflate di file gzippati con GO
-https://travis-ci.org/axamon/compresso.svg?branch=master
+	
+
+
+### Status
+[![Build Status](https://travis-ci.org/axamon/compresso.svg?branch=master)](https://travis-ci.org/axamon/compresso)
+
+
