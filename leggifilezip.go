@@ -42,8 +42,16 @@ type Acesslog struct {
 }
 
 type Ingestlogtest struct {
-	Hash string
-	Time string
+	Hash        string
+	Time        string
+	URL         string
+	Urlschema   string
+	Urlhost     string
+	Urlpath     string
+	Urlquery    string
+	Urlfragment string
+	ServerIP         string
+	BytesRead        int
 }
 
 type Ingestlog struct {
@@ -176,7 +184,11 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		l.AssetSize, _ = strconv.Atoi(s[6])
 		l.Status = s[10]
 		l.IngestStatus = s[15]
-		record := &Ingestlogtest{l.Hash, l.Time}
+		record := &Ingestlogtest{l.Hash, l.Time,
+			l.URL, l.Urlschema, l.Urlhost, l.Urlpath,
+			l.Urlquery, l.Urlfragment, l.ServerIP,
+			l.BytesRead
+		}
 		out, err := json.Marshal(record)
 		if err != nil {
 			panic(err)
