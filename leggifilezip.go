@@ -128,7 +128,7 @@ func leggizip(file string) {
 			line := scan.Text()
 			s := strings.Split(line, "\t")
 			// fmt.Println("dopo")
-			t, err := time.Parse("[02/Jan/2006:15:04:050+0000]", s[0])
+			t, err := time.Format("[02/Jan/2006:15:04:05.000-0700]", s[0])
 			if err != nil {
 				fmt.Println(err)
 			}
