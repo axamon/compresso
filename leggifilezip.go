@@ -160,7 +160,7 @@ func leggizip(file string) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		Time := t.Format(time.RFC3339)
+		Time := t.Format("2006-01-02T15:04:05.000Z")
 
 		//gestiamo le url
 		u, err := url.Parse(s[1])
