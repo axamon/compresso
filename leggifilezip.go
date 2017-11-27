@@ -141,9 +141,9 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		hasher.Write([]byte(line))
 		l.Hash = hex.EncodeToString(hasher.Sum(nil))
 		val, err := client.SAdd("recordhashes", l.Hash).Result()
-		fmt.Println(val)
-		time.Sleep(3 * time.Second)
-		if val == 1 { //se l'aggiunta dell'hash in redis è positiva prosegue
+		// fmt.Println(val)
+		// time.Sleep(3 * time.Second)
+		if val == 0 { //se l'aggiunta dell'hash in redis è positiva prosegue
 			continue
 		}
 		t, err := time.Parse("02/Jan/2006:15:04:05", s[0][1:len(s[0])-7])
