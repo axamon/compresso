@@ -143,7 +143,7 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		val, err := client.SAdd("recordhashes", l.Hash).Result()
 		// fmt.Println(val)
 		// time.Sleep(3 * time.Second)
-		if val == 0 { //se l'aggiunta dell'hash in redis è positiva prosegue
+		if val == 0 { //se l'aggiunta dell'hash in redis è positiva prosegue altrimenti riprende il loop
 			continue
 		}
 		t, err := time.Parse("02/Jan/2006:15:04:05", s[0][1:len(s[0])-7])
@@ -170,7 +170,11 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		l.AssetSize, _ = strconv.Atoi(s[6])
 		l.Status = s[10]
 		l.IngestStatus = s[15]
-		fmt.Printf("%#v\n", l)
+		err := client.LPush("codarecords", l).Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+		//fmt.Printf("%#v\n", l)
 
 	}
 	return
