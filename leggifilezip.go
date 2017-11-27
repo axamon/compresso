@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"net/url"
 	"runtime"
+	"strconv"
 	"time"
 
 	//"compress/gzip"
@@ -11,6 +12,7 @@ import (
 	"bufio"
 	"encoding/csv"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -37,6 +39,11 @@ type Acesslog struct {
 	unused3  string
 	unused4  string
 	unused5  string
+}
+
+type Ingestlogtest struct {
+	Hash string
+	Time string
 }
 
 type Ingestlog struct {
@@ -164,12 +171,17 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		l.Urlfragment = u.Fragment
 		//gestione url finita
 		l.ServerIP = s[3]
-		// l.BytesRead, _ = strconv.Atoi(s[4])
-		// l.BytesToRead, _ = strconv.Atoi(s[5])
-		// l.AssetSize, _ = strconv.Atoi(s[6])
+		l.BytesRead, _ = strconv.Atoi(s[4])
+		l.BytesToRead, _ = strconv.Atoi(s[5])
+		l.AssetSize, _ = strconv.Atoi(s[6])
 		l.Status = s[10]
 		l.IngestStatus = s[15]
-		clienterr := client.LPush("codarecords", l).Err()
+		record := &Ingestlogtest{l.Hash, l.Time}
+		out, err := json.Marshal(record)
+		if err != nil {
+			panic(err)
+		}
+		clienterr := client.LPush("codarecords", out).Err()
 		if clienterr != nil {
 			log.Fatal(clienterr)
 		}
