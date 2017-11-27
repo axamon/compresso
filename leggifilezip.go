@@ -42,18 +42,22 @@ type Acesslog struct {
 }
 
 type Ingestlogtest struct {
-	Type        string
-	Hash        string
-	Time        string
-	URL         string
-	SEIp        string
-	Urlschema   string
-	Urlhost     string
-	Urlpath     string
-	Urlquery    string
-	Urlfragment string
-	ServerIP    string
-	BytesRead   int
+	Type         string
+	Hash         string
+	Time         string
+	URL          string
+	SEIp         string
+	Urlschema    string
+	Urlhost      string
+	Urlpath      string
+	Urlquery     string
+	Urlfragment  string
+	ServerIP     string
+	BytesRead    int
+	BytesToRead  int
+	AssetSize    int
+	Status       string
+	IngestStatus string
 }
 
 type Ingestlog struct {
