@@ -10,15 +10,12 @@ import (
 	//"compress/gzip"
 
 	"bufio"
-	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/go-redis/redis"
 	"github.com/klauspost/pgzip"
@@ -87,46 +84,11 @@ type Ingestlog struct {
 
 // var wg sync.WaitGroup
 
-var wg = sizedwaitgroup.New(100) //massimo numero di go routine per volta
-
-func leggizip2(file string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	//runtime.GOMAXPROCS(1)
-	// runtime.NumCPU()
-	f, err := os.Open(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	// gr, err := gzip.NewReader(f)
-	gr, err := pgzip.NewReaderN(f, 4096, 100)
-
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-	cr := csv.NewReader(gr)
-
-	cr.Comma = ' '          //specifica il delimitatore dei campi
-	cr.FieldsPerRecord = -1 //accetta numero di campi variabili
-	cr.Comment = '#'
-	//cr.Comma = delimiter //specifica il delimitatore dei campi
-	cr.LazyQuotes = true
-	for {
-		rec, err := cr.Read()
-		if err == io.EOF {
-			break
-		}
-
-		fmt.Println(rec)
-	}
-	return
-}
+var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
 
 func leggizip(file string) {
 	defer wg.Done()
-	runtime.GOMAXPROCS(runtime.NumCPU()-1) //esegue una go routine su tutti i processori
+	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
 
 	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
 		Addr:     "localhost:6379",
