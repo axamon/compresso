@@ -156,7 +156,7 @@ func leggizip(file string) {
 		if val == 0 { //se l'aggiunta dell'hash in redis è positiva prosegue altrimenti riprende il loop
 			continue
 		}
-		t, err := time.Parse("02/Jan/2006:15:04:05", s[0][1:len(s[0])-7])
+		t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0])
 		if err != nil {
 			fmt.Println(err)
 		}
