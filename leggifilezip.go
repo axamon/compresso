@@ -118,16 +118,15 @@ func leggizip(file string) {
 		os.Exit(1)
 	}
 
-	scan := bufio.NewScanner(gr)
-	for scan.Scan() {
-		line := scan.Text()
-		s := strings.Split(line, " ")
+	fileelements := strings.Split(file, "_")
+	SEIp := fileelements[3]
+	Type := fileelements[1]
 
-		fileelements := strings.Split(file, "_")
-		SEIp := fileelements[3]
-		Type := fileelements[1]
-
-		if Type == "accesslog" {
+	if Type == "accesslog" {
+		scan := bufio.NewScanner(gr)
+		for scan.Scan() {
+			line := scan.Text()
+			s := strings.Split(line, "\t")
 			// fmt.Println("dopo")
 			t, err := time.Parse("[02/Jan/2006:15:04:050+0000]", s[0])
 			if err != nil {
@@ -137,6 +136,12 @@ func leggizip(file string) {
 			fmt.Println(Time)
 			continue
 		}
+	}
+
+	scan := bufio.NewScanner(gr)
+	for scan.Scan() {
+		line := scan.Text()
+		s := strings.Split(line, " ")
 
 		// if len(s) < 20 {
 		// 	continue
