@@ -125,8 +125,8 @@ func leggizip2(file string, wg *sync.WaitGroup) {
 func leggizip(file string) {
 	defer wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU()) //esegue una go routine su tutti i processori
-	fileelements := string.Split(file, "_")
-	fmt.Prinln(fileelements)
+	fileelements := strings.Split(file, "_")
+	fmt.Println(fileelements)
 	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
 		Addr:     "localhost:6379",
 		Password: "", // no password set
