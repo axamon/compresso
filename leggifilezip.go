@@ -50,8 +50,8 @@ type Ingestlogtest struct {
 	Urlpath     string
 	Urlquery    string
 	Urlfragment string
-	ServerIP         string
-	BytesRead        int
+	ServerIP    string
+	BytesRead   int
 }
 
 type Ingestlog struct {
@@ -187,8 +187,8 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		record := &Ingestlogtest{l.Hash, l.Time,
 			l.URL, l.Urlschema, l.Urlhost, l.Urlpath,
 			l.Urlquery, l.Urlfragment, l.ServerIP,
-			l.BytesRead
-		}
+			l.BytesRead}
+
 		out, err := json.Marshal(record)
 		if err != nil {
 			panic(err)
