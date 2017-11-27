@@ -146,7 +146,7 @@ func leggizip(file string) {
 		Type := fileelements[2]
 		switch Type {
 		case "accesslog":
-			continue
+			fmt.Println("dopo")
 		case "ingestlog":
 
 			//gestiamo le url
