@@ -122,6 +122,16 @@ func leggizip(file string) {
 	for scan.Scan() {
 		line := scan.Text()
 		s := strings.Split(line, " ")
+
+		fileelements := strings.Split(file, "_")
+		SEIp := fileelements[3]
+		Type := fileelements[1]
+
+		if Type == "accesslog" {
+			fmt.Println("dopo")
+			continue
+		}
+
 		if len(s) < 20 {
 			continue
 		}
@@ -141,14 +151,6 @@ func leggizip(file string) {
 		}
 		Time := t.Format(time.RFC3339)
 		//SEIp
-		fileelements := strings.Split(file, "_")
-		SEIp := fileelements[3]
-		Type := fileelements[1]
-
-		if Type == "accesslog" {
-			fmt.Println("dopo")
-			continue
-		}
 
 		//gestiamo le url
 		u, err := url.Parse(s[1])
