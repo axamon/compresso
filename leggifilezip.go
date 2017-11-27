@@ -144,50 +144,56 @@ func leggizip(file string) {
 		fileelements := strings.Split(file, "_")
 		SEIp := fileelements[3]
 		Type := fileelements[2]
-		//gestiamo le url
-		u, err := url.Parse(s[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		URL := s[1]
-		Urlschema := u.Scheme
-		Urlhost := u.Host
-		Urlpath := u.Path
-		Urlquery := u.RawQuery
-		Urlfragment := u.Fragment
-		//gestione url finita
-		ServerIP := s[3]
-		BytesRead, _ := strconv.Atoi(s[4])
-		BytesToRead, _ := strconv.Atoi(s[5])
-		AssetSize, _ := strconv.Atoi(s[6])
-		Status := s[10]
-		IngestStatus := s[15]
-		record := &Ingestlogtest{Type: Type,
-			Hash:         Hash,
-			Time:         Time,
-			URL:          URL,
-			SEIp:         SEIp,
-			Urlschema:    Urlschema,
-			Urlhost:      Urlhost,
-			Urlpath:      Urlpath,
-			Urlquery:     Urlquery,
-			Urlfragment:  Urlfragment,
-			ServerIP:     ServerIP,
-			BytesRead:    BytesRead,
-			BytesToRead:  BytesToRead,
-			AssetSize:    AssetSize,
-			Status:       Status,
-			IngestStatus: IngestStatus}
+		switch Type {
+		case "accesslog":
+			continue
+		case "ingestlog":
 
-		out, err := json.Marshal(record)
-		if err != nil {
-			panic(err)
+			//gestiamo le url
+			u, err := url.Parse(s[1])
+			if err != nil {
+				log.Fatal(err)
+			}
+			URL := s[1]
+			Urlschema := u.Scheme
+			Urlhost := u.Host
+			Urlpath := u.Path
+			Urlquery := u.RawQuery
+			Urlfragment := u.Fragment
+			//gestione url finita
+			ServerIP := s[3]
+			BytesRead, _ := strconv.Atoi(s[4])
+			BytesToRead, _ := strconv.Atoi(s[5])
+			AssetSize, _ := strconv.Atoi(s[6])
+			Status := s[10]
+			IngestStatus := s[15]
+			record := &Ingestlogtest{Type: Type,
+				Hash:         Hash,
+				Time:         Time,
+				URL:          URL,
+				SEIp:         SEIp,
+				Urlschema:    Urlschema,
+				Urlhost:      Urlhost,
+				Urlpath:      Urlpath,
+				Urlquery:     Urlquery,
+				Urlfragment:  Urlfragment,
+				ServerIP:     ServerIP,
+				BytesRead:    BytesRead,
+				BytesToRead:  BytesToRead,
+				AssetSize:    AssetSize,
+				Status:       Status,
+				IngestStatus: IngestStatus}
+
+			out, err := json.Marshal(record)
+			if err != nil {
+				panic(err)
+			}
+			clienterr := client.LPush("codarecords", out).Err()
+			if clienterr != nil {
+				log.Fatal(clienterr)
+			}
+			//fmt.Printf("%+v\n", l)
 		}
-		clienterr := client.LPush("codarecords", out).Err()
-		if clienterr != nil {
-			log.Fatal(clienterr)
-		}
-		//fmt.Printf("%+v\n", l)
 
 	}
 	return
