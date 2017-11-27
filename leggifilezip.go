@@ -170,8 +170,8 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		l.AssetSize, _ = strconv.Atoi(s[6])
 		l.Status = s[10]
 		l.IngestStatus = s[15]
-		clienterr := client.LPush("codarecords", l).Err()
-		if err != nil {
+		clienterr := client.LPush("codarecords", l.Time).Err()
+		if clienterr != nil {
 			log.Fatal(clienterr)
 		}
 		//fmt.Printf("%#v\n", l)
