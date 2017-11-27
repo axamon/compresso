@@ -129,7 +129,7 @@ func leggizip(file string) {
 
 		if Type == "accesslog" {
 			// fmt.Println("dopo")
-			t, err := time.Parse("02/Jan/2006:15:04:05", s[0][1:len(s[0])-7])
+			t, err := time.Parse("[02/Jan/2006:15:04:050+0000]", s[0])
 			if err != nil {
 				fmt.Println(err)
 			}
