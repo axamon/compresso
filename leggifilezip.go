@@ -22,6 +22,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/klauspost/pgzip"
+	"github.com/remeh/sizedwaitgroup"
 )
 
 type Acesslog struct {
@@ -82,7 +83,9 @@ type Ingestlog struct {
 	BillingCookie    string
 }
 
-var wg sync.WaitGroup
+// var wg sync.WaitGroup
+
+var wg = sizedwaitgroup.New(10) //massimo numero di go routine per volta
 
 func leggizip2(file string, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -119,7 +122,7 @@ func leggizip2(file string, wg *sync.WaitGroup) {
 	return
 }
 
-func leggizip(file string, wg *sync.WaitGroup) {
+func leggizip(file string) {
 	defer wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU())      //esegue una go routine su tutti i processori
 	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
@@ -207,10 +210,8 @@ func leggizip(file string, wg *sync.WaitGroup) {
 func main() {
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
-		wg.Add(1)
-		// go leggizipEvolved(file)
-		go leggizip(file, &wg)
-		//Leggi(file)
+		wg.Add()
+		go leggizip(file)
 	}
 	wg.Wait()
 
