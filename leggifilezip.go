@@ -19,6 +19,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/go-redis/redis"
 	"github.com/klauspost/pgzip"
 )
 
@@ -106,7 +107,12 @@ func leggizip2(file string, wg *sync.WaitGroup) {
 
 func leggizip(file string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	runtime.GOMAXPROCS(runtime.NumCPU()) //esegue una go routine per processore fisico
+	runtime.GOMAXPROCS(runtime.NumCPU())      //esegue una go routine su tutti i processori
+	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 
 	f, err := os.Open(file)
 	if err != nil {
@@ -134,7 +140,10 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		hasher := md5.New()
 		hasher.Write([]byte(line))
 		l.Hash = hex.EncodeToString(hasher.Sum(nil))
-		//gestiamo il tempo
+		val, err := client.SAdd(l.Hash, "recordhashes").Result()
+		if val != 1 {
+			log.Fatal(err)
+		}
 		t, err := time.Parse("02/Jan/2006:15:04:05", s[0][1:len(s[0])-7])
 		if err != nil {
 			fmt.Println(err)
