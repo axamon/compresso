@@ -23,23 +23,26 @@ import (
 )
 
 type Acesslog struct {
-	Time     string
-	TTS      int
-	clientip string
-	request  string
-	bytes    int
-	method   string
-	url      string
-	mime     string
-	ua       string
-	unused1  string
-	unused2  string
-	unused3  string
-	unused4  string
-	unused5  string
+	Hash      string
+	Type      string
+	Time      string
+	TTS       int
+	SEIp      string
+	Clientip  string
+	Request   string
+	Bytes     int
+	Method    string
+	Url       string
+	Urlschema string
+	Urlhost   string
+	Urlpath   string
+	Urlquery  string
+	Mime      string
+	Ua        string
 }
 
 type Ingestlogtest struct {
+	Type        string
 	Hash        string
 	Time        string
 	URL         string
@@ -54,6 +57,7 @@ type Ingestlogtest struct {
 }
 
 type Ingestlog struct {
+	Type             string
 	Hash             string
 	Time             string
 	URL              string
@@ -111,7 +115,6 @@ func leggizip(file string) {
 	}
 
 	scan := bufio.NewScanner(gr)
-	l := Ingestlog{}
 	for scan.Scan() {
 		line := scan.Text()
 		s := strings.Split(line, " ")
@@ -121,8 +124,8 @@ func leggizip(file string) {
 
 		hasher := md5.New()
 		hasher.Write([]byte(line))
-		l.Hash = hex.EncodeToString(hasher.Sum(nil))
-		val, err := client.SAdd("recordhashes", l.Hash).Result()
+		Hash := hex.EncodeToString(hasher.Sum(nil))
+		val, err := client.SAdd("recordhashes", Hash).Result()
 		// fmt.Println(val)
 		// time.Sleep(3 * time.Second)
 		if val == 0 { //se l'aggiunta dell'hash in redis è positiva prosegue altrimenti riprende il loop
@@ -132,32 +135,45 @@ func leggizip(file string) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		l.Time = t.Format(time.RFC3339)
+		Time := t.Format(time.RFC3339)
 		//SEIp
 		fileelements := strings.Split(file, "_")
-		l.SEIp = fileelements[3]
+		SEIp := fileelements[3]
+		Type := fileelements[2]
 		//gestiamo le url
 		u, err := url.Parse(s[1])
 		if err != nil {
 			log.Fatal(err)
 		}
-		l.URL = s[1]
-		l.Urlschema = u.Scheme
-		l.Urlhost = u.Host
-		l.Urlpath = u.Path
-		l.Urlquery = u.RawQuery
-		l.Urlfragment = u.Fragment
+		URL := s[1]
+		Urlschema := u.Scheme
+		Urlhost := u.Host
+		Urlpath := u.Path
+		Urlquery := u.RawQuery
+		Urlfragment := u.Fragment
 		//gestione url finita
-		l.ServerIP = s[3]
-		l.BytesRead, _ = strconv.Atoi(s[4])
-		l.BytesToRead, _ = strconv.Atoi(s[5])
-		l.AssetSize, _ = strconv.Atoi(s[6])
-		l.Status = s[10]
-		l.IngestStatus = s[15]
-		record := &Ingestlogtest{l.Hash, l.Time,
-			l.URL, l.SEIp, l.Urlschema, l.Urlhost, l.Urlpath,
-			l.Urlquery, l.Urlfragment, l.ServerIP,
-			l.BytesRead}
+		ServerIP := s[3]
+		BytesRead, _ := strconv.Atoi(s[4])
+		BytesToRead, _ := strconv.Atoi(s[5])
+		AssetSize, _ := strconv.Atoi(s[6])
+		Status := s[10]
+		IngestStatus := s[15]
+		record := &Ingestlogtest{Type: Type,
+			Hash:         Hash,
+			Time:         Time,
+			URL:          URL,
+			SEIp:         SEIp,
+			Urlschema:    Urlschema,
+			Urlhost:      Urlhost,
+			Urlpath:      Urlpath,
+			Urlquery:     Urlquery,
+			Urlfragment:  Urlfragment,
+			ServerIP:     ServerIP,
+			BytesRead:    BytesRead,
+			BytesToRead:  BytesToRead,
+			AssetSize:    AssetSize,
+			Status:       Status,
+			IngestStatus: IngestStatus}
 
 		out, err := json.Marshal(record)
 		if err != nil {
