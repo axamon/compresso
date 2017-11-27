@@ -143,9 +143,9 @@ func leggizip(file string) {
 		line := scan.Text()
 		s := strings.Split(line, " ")
 
-		// if len(s) < 20 {
-		// 	continue
-		// }
+		if len(s) < 20 {
+			continue
+		}
 
 		hasher := md5.New()
 		hasher.Write([]byte(line))
