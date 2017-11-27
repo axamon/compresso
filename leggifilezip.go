@@ -128,13 +128,19 @@ func leggizip(file string) {
 		Type := fileelements[1]
 
 		if Type == "accesslog" {
-			fmt.Println("dopo")
+			// fmt.Println("dopo")
+			t, err := time.Parse("02/Jan/2006:15:04:05", s[0][1:len(s[0])-7])
+			if err != nil {
+				fmt.Println(err)
+			}
+			Time := t.Format(time.RFC3339)
+			fmt.Println(Time)
 			continue
 		}
 
-		if len(s) < 20 {
-			continue
-		}
+		// if len(s) < 20 {
+		// 	continue
+		// }
 
 		hasher := md5.New()
 		hasher.Write([]byte(line))
@@ -150,7 +156,6 @@ func leggizip(file string) {
 			fmt.Println(err)
 		}
 		Time := t.Format(time.RFC3339)
-		//SEIp
 
 		//gestiamo le url
 		u, err := url.Parse(s[1])
