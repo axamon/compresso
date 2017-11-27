@@ -143,7 +143,7 @@ func leggizip(file string) {
 		//SEIp
 		fileelements := strings.Split(file, "_")
 		SEIp := fileelements[3]
-		Type := fileelements[2]
+		Type := fileelements[1]
 
 		if Type == "accesslog" {
 			fmt.Println("dopo")
