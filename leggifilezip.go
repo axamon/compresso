@@ -140,7 +140,7 @@ func leggizip(file string, wg *sync.WaitGroup) {
 		hasher := md5.New()
 		hasher.Write([]byte(line))
 		l.Hash = hex.EncodeToString(hasher.Sum(nil))
-		val, err := client.SAdd(l.Hash, "recordhashes").Result()
+		val, err := client.SAdd("recordhashes", l.Hash).Result()
 		if val != 1 {
 			log.Fatal(err)
 		}
