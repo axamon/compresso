@@ -144,10 +144,11 @@ func leggizip(file string) {
 		fileelements := strings.Split(file, "_")
 		SEIp := fileelements[3]
 		Type := fileelements[2]
-		switch Type {
-		case "accesslog":
+		switch {
+		case Type == "accesslog":
 			fmt.Println("dopo")
-		case "ingestlog":
+
+		case Type == "ingestlog":
 
 			//gestiamo le url
 			u, err := url.Parse(s[1])
