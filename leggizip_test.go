@@ -33,7 +33,7 @@ func ExampleLeggizip() {
 	//var wg = sizedwaitgroup.New(200)
 
 	//wg.Add()
-	leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
+	leggizip2("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
 	//wg.Wait()
 	val, err := client.SCard("recordhashes").Result()
 	if err != nil {
