@@ -26,7 +26,11 @@ func ExampleNewClient() {
 }
 
 func ExampleLeggizip() {
-
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 	var wg = sizedwaitgroup.New(200)
 
 	wg.Add()
