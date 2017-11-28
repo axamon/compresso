@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis"
-	"github.com/remeh/sizedwaitgroup"
 )
 
 // func ExampleLeggizip() {
@@ -31,7 +30,7 @@ func ExampleLeggizip() {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	var wg = sizedwaitgroup.New(200)
+	//var wg = sizedwaitgroup.New(200)
 
 	//wg.Add()
 	leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
