@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"testing"
 
 	"github.com/go-redis/redis"
 	"github.com/remeh/sizedwaitgroup"
@@ -34,19 +33,12 @@ func ExampleLeggizip() {
 	})
 	var wg = sizedwaitgroup.New(200)
 	wg.Add()
-	leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
+	go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
+	wg.Wait()
 	val, err := client.SCard("recordhashes").Result()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(val, err)
 	// Output: 96 <nil>
-}
-
-func BenchmarkLeggizip(b *testing.B) {
-	var wg = sizedwaitgroup.New(200)
-	for n := 0; n < b.N; n++ {
-		wg.Add()
-		leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
-	}
 }
