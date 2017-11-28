@@ -26,7 +26,7 @@ func ExampleNewClient() {
 	// Output: PONG <nil>
 }
 
-func BenchmarkLeggizip(t *testing.T) {
+func ExampleLeggizip() {
 	client := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // no password set
