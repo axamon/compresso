@@ -16,6 +16,6 @@ func BenchmarkLeggizip(b *testing.B) {
 	var wg = sizedwaitgroup.New(200)
 	for n := 0; n < b.N; n++ {
 		wg.Add()
-		leggizip("we_ingestlog.gz")
+		leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
 	}
 }
