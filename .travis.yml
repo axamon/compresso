@@ -7,6 +7,9 @@ go:
 os:
   - linux
 
+services:
+  - redis-server
+
 before_install:
   - go get -v github.com/klauspost/pgzip
   - go get -v github.com/go-redis/redis
