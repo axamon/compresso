@@ -1,7 +1,6 @@
 package main
 
 import (
-	"sync"
 	"testing"
 )
 
@@ -12,9 +11,11 @@ import (
 // }
 
 func BenchmarkLeggizip(b *testing.B) {
-	var wg sync.WaitGroup
+	var wg = sizedwaitgroup.New(200)
 	for n := 0; n < b.N; n++ {
-		wg.Add(1)
-		leggizip("we_ingestlog.gz", &wg)
+		wg.Add()
+		leggizip("we_ingestlog.gz")
+	}
+}
 	}
 }
