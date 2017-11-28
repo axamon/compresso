@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	"github.com/remeh/sizedwaitgroup"
 )
 
 // func ExampleLeggizip() {
@@ -15,7 +17,5 @@ func BenchmarkLeggizip(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		wg.Add()
 		leggizip("we_ingestlog.gz")
-	}
-}
 	}
 }
