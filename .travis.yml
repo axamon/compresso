@@ -16,4 +16,4 @@ before_install:
   - go get -v github.com/remeh/sizedwaitgroup
 
 script:
-  - go test -bench=Leggizip
+  - go test
