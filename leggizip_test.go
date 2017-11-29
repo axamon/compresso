@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"testing"
 
 	"github.com/go-redis/redis"
 )
@@ -55,7 +56,7 @@ func BenchmarkLeggizip(b *testing.B) {
 		wg.Add(1)
 		go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
 		wg.Wait()
-		val, err := client.SCard("recordhashes").Result()
+		_, err := client.SCard("recordhashes").Result()
 		if err != nil {
 			panic(err)
 		}
