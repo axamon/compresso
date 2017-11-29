@@ -93,6 +93,8 @@ type Ingestlog struct {
 // var wg sync.WaitGroup
 
 var Wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
+var Wg2 = sizedwaitgroup
+var Test string = "pippo"
 
 func leggizip(file string) {
 	defer Wg.Done()

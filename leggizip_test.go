@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/go-redis/redis"
-	"github.com/remeh/sizedwaitgroup"
 )
 
 // func ExampleLeggizip() {
@@ -31,9 +31,9 @@ func ExampleLeggizip() {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	var Wg = sizedwaitgroup.New(200)
-
-	Wg.Add()
+	var Wg = sync.WaitGroup
+	fmt.Println(Test)
+	Wg.Add(1)
 	go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
 	Wg.Wait()
 	val, err := client.SCard("recordhashes").Result()
