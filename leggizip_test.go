@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis"
+	"github.com/remeh/sizedwaitgroup"
 )
 
 // func ExampleLeggizip() {
@@ -30,11 +31,11 @@ func ExampleLeggizip() {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	//var wg = sizedwaitgroup.New(200)
+	var Wg = sizedwaitgroup.New(200)
 
-	//wg.Add()
-	leggizip2("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
-	//wg.Wait()
+	Wg.Add()
+	go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
+	Wg.Wait()
 	val, err := client.SCard("recordhashes").Result()
 	if err != nil {
 		panic(err)

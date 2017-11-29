@@ -92,10 +92,10 @@ type Ingestlog struct {
 
 // var wg sync.WaitGroup
 
-var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
+var Wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
 
 func leggizip(file string) {
-	defer wg.Done()
+	defer Wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
 
 	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
@@ -215,7 +215,7 @@ func leggizip(file string) {
 }
 
 func leggizip2(file string) {
-	//defer wg.Done()
+	//defer Wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
 
 	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
@@ -337,10 +337,10 @@ func leggizip2(file string) {
 func main() {
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
-		wg.Add()
+		Wg.Add()
 		go leggizip(file)
 	}
-	wg.Wait()
+	Wg.Wait()
 
 	return
 }
