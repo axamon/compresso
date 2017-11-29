@@ -31,15 +31,33 @@ func ExampleLeggizip() {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	var Wg = sync.WaitGroup
+	var wg = sync.WaitGroup
 	fmt.Println(Test)
-	Wg.Add(1)
+	wg.Add(1)
 	go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
-	Wg.Wait()
+	wg.Wait()
 	val, err := client.SCard("recordhashes").Result()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(val, err)
 	// Output: 96 <nil>
+}
+
+func BenchmarkLeggizip(b *test.B) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	var wg = sync.WaitGroup
+	for n := 0; n < b.N; n++ {
+		wg.Add(1)
+		go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
+		wg.Wait()
+		val, err := client.SCard("recordhashes").Result()
+		if err != nil {
+			panic(err)
+		}
+	}
 }
