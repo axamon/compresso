@@ -50,7 +50,7 @@ func BenchmarkLeggizip(b *testing.B) {
 	// var wg sync.WaitGroup
 	for n := 0; n < b.N; n++ {
 		// wg.Add(1)
-		go leggizip2("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
+		leggizip2("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
 		// wg.Wait()
 	}
 
