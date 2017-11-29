@@ -31,7 +31,7 @@ func ExampleLeggizip() {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	var wg = sync.WaitGroup
+	var wg := sync.WaitGroup
 	fmt.Println(Test)
 	wg.Add(1)
 	go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
@@ -50,7 +50,7 @@ func BenchmarkLeggizip(b *test.B) {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	var wg = sync.WaitGroup
+	var wg := sync.WaitGroup
 	for n := 0; n < b.N; n++ {
 		wg.Add(1)
 		go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
