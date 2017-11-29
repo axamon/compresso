@@ -46,19 +46,12 @@ func ExampleLeggizip() {
 }
 
 func BenchmarkLeggizip(b *testing.B) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
+
 	var wg sync.WaitGroup
 	for n := 0; n < b.N; n++ {
 		wg.Add(1)
 		go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
 		wg.Wait()
-		_, err := client.SCard("recordhashes").Result()
-		if err != nil {
-			panic(err)
-		}
 	}
+
 }
