@@ -44,7 +44,7 @@ func ExampleLeggizip() {
 	// Output: 96 <nil>
 }
 
-func BenchmarkLeggizip(b *test.B) {
+func BenchmarkLeggizip(b *testing.B) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // no password set
