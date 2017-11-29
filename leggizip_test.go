@@ -32,11 +32,11 @@ func ExampleLeggizip() {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
-	var wg sync.WaitGroup
-	fmt.Println(Test)
-	wg.Add(1)
-	go leggizip("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
-	wg.Wait()
+	// var wg sync.WaitGroup
+	// fmt.Println(Test)
+	// wg.Add(1)
+	leggizip2("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
+	// wg.Wait()
 	val, err := client.SCard("recordhashes").Result()
 	if err != nil {
 		panic(err)
