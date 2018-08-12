@@ -219,7 +219,7 @@ func leggizip(file string) {
 }
 
 func leggizip2(file string) {
-	//defer Wg.Done()
+	defer wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
 
 	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
@@ -250,15 +250,51 @@ func leggizip2(file string) {
 		scan := bufio.NewScanner(gr)
 		for scan.Scan() {
 			line := scan.Text()
+			if !strings.HasPrefix(line, "[") { //se la linea non inzia con [ allora salta
+				continue
+			}
 			s := strings.Split(line, "\t")
-			// fmt.Println("dopo")
-			t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
+			//t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
 			if err != nil {
 				fmt.Println(err)
 			}
-			Time := t.Format("2006-01-02T15:04:05.000Z") //idem con patate questo è lo stracazzuto ISO8601 meglio c'è solo epoch
-			fmt.Println(Time)
-			continue
+			//Time := t.Unix()
+			//Time := t.Format("2006-01-02T15:04:05.000Z") //idem con patate questo è lo stracazzuto ISO8601 meglio c'è solo epoch
+			//fmt.Println(Time)
+			tts, err := strconv.Atoi(s[1])
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			clientip := s[2]
+			status := s[3]
+			ua := s[8]
+			bytes, err := strconv.Atoi(s[4])
+			speed := bytes / tts
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			u, err := url.Parse(s[6]) //prendi una URL, trattala male, falla a pezzi per ore...
+			if err != nil {
+				log.Fatal(err)
+			}
+			//Urlschema := u.Scheme
+			//Urlhost := u.Host
+			Urlpath := u.Path
+			//fmt.Println(Urlpath)
+			//Urlquery := u.RawQuery
+			//Urlfragment := u.Fragment
+			if strings.Contains(Urlpath, "videoteca") {
+				//fmt.Println(Urlpath)
+				pezziurl := strings.Split(Urlpath, "/")
+				//fmt.Println(pezziurl)
+				idvideoteca := pezziurl[6]
+				//fmt.Println(idvideoteca)
+				if speed == 0 {
+					fmt.Println(idvideoteca, speed, status, clientip, ua)
+				}
+			}
+
+			//continue
 		}
 	}
 
@@ -342,7 +378,7 @@ func main() {
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
 		wg.Add()
-		go leggizip(file)
+		go leggizip2(file)
 	}
 	wg.Wait()
 
