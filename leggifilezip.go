@@ -261,18 +261,23 @@ func leggizip2(file string) {
 			//Time := t.Unix()
 			//Time := t.Format("2006-01-02T15:04:05.000Z") //idem con patate questo è lo stracazzuto ISO8601 meglio c'è solo epoch
 			//fmt.Println(Time)
-			tts, err := strconv.Atoi(s[1])
+			var speed, tts, bytes float64
+
+			tts, err = strconv.ParseFloat(s[1], 8)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
+
+			bytes, err := strconv.ParseFloat(s[4], 8)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+
+			speed = (bytes / tts)
 			clientip := s[2]
 			status := s[3]
 			ua := s[8]
-			bytes, err := strconv.Atoi(s[4])
-			speed := bytes / tts
-			if err != nil {
-				log.Fatal(err.Error())
-			}
+
 			u, err := url.Parse(s[6]) //prendi una URL, trattala male, falla a pezzi per ore...
 			if err != nil {
 				log.Fatal(err)
@@ -284,17 +289,23 @@ func leggizip2(file string) {
 			//Urlquery := u.RawQuery
 			//Urlfragment := u.Fragment
 			if strings.Contains(Urlpath, "videoteca") {
-				//fmt.Println(Urlpath)
 				pezziurl := strings.Split(Urlpath, "/")
 				//fmt.Println(pezziurl)
 				idvideoteca := pezziurl[6]
+				encoding := pezziurl[10]
+				hasher := md5.New()                                  //prepara a fare un hash
+				hasher.Write([]byte(clientip + idvideoteca + ua))    //hasha tutta la linea
+				Hash := hex.EncodeToString(hasher.Sum(nil))          //estrae l'hash md5sum in versione quasi human readable
+				_, err := client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
+				if err != nil {
+					log.Fatal(err.Error())
+				}
 				//fmt.Println(idvideoteca)
-				if speed == 0 {
-					fmt.Println(idvideoteca, speed, status, clientip, ua)
+				if speed < 0.87 {
+					fmt.Printf("%v %v %.3f %v %v %v\n", Hash, idvideoteca, speed, status, clientip, encoding)
 				}
 			}
 
-			//continue
 		}
 	}
 
