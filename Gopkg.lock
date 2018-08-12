@@ -13,14 +13,14 @@
     "internal/singleflight",
     "internal/util"
   ]
-  revision = "83fb42932f6145ce52df09860384a4653d2d332a"
-  version = "v6.12.0"
+  revision = "480db94d33e6088e08d628833b6c0705451d24bb"
+  version = "v6.13.2"
 
 [[projects]]
   name = "github.com/klauspost/compress"
   packages = ["flate"]
-  revision = "5fb1f31b0a61e9858f12f39266e059848a5f1cea"
-  version = "v1.3.0"
+  revision = "b939724e787a27c0005cabe3f78e7ed7987ac74f"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/klauspost/cpuid"
@@ -49,6 +49,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9669a5438587d685a8a640af701598ecb1e2768fa06911d760e47676e2ba62af"
+  inputs-digest = "27972dad1359195aeb535649e50e864bd4ddfa34771e159f5aad66f45aeb6994"
   solver-name = "gps-cdcl"
   solver-version = 1

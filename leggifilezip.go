@@ -22,6 +22,7 @@ import (
 	"github.com/remeh/sizedwaitgroup"
 )
 
+//Accesslog tipo per transaction
 type Accesslog struct {
 	Hash      string
 	Type      string
@@ -32,7 +33,7 @@ type Accesslog struct {
 	Request   string
 	Bytes     int
 	Method    string
-	Url       string
+	URL       string
 	Urlschema string
 	Urlhost   string
 	Urlpath   string
@@ -41,6 +42,7 @@ type Accesslog struct {
 	Ua        string
 }
 
+//Ingestlogtest recors dei log ingestion
 type Ingestlogtest struct {
 	Type         string
 	Hash         string
@@ -60,6 +62,7 @@ type Ingestlogtest struct {
 	IngestStatus string
 }
 
+//Ingestlog fields per Ingestion logs
 type Ingestlog struct {
 	Type             string
 	Hash             string
@@ -85,7 +88,7 @@ type Ingestlog struct {
 	CDSDomain        string
 	ConnectionInfo   string
 	IngestStatus     string
-	RedirectedUrl    string
+	RedirectedURL    string
 	OSFailoverAction string
 	BillingCookie    string
 }
@@ -93,7 +96,7 @@ type Ingestlog struct {
 // var wg sync.WaitGroup
 
 var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
-var Test string = "pippo"
+//var Test string = "pippo"
 
 func leggizip(file string) {
 	defer wg.Done()
