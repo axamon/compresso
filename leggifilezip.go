@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"net/url"
+	"regexp"
 	"runtime"
 	"strconv"
 	"time"
@@ -20,6 +21,10 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/klauspost/pgzip"
 	"github.com/remeh/sizedwaitgroup"
+)
+
+const (
+	bitstoMB = 0.000000125
 )
 
 //Accesslog tipo per transaction
@@ -254,11 +259,20 @@ func leggizip2(file string) {
 				continue
 			}
 			s := strings.Split(line, "\t")
-			//t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
+			u, err := url.Parse(s[6]) //parsa la URL nelle sue componenti
+			if err != nil {
+				log.Fatal(err)
+			}
+			Urlschema := u.Scheme
+			if Urlschema != "https" { //fa passare solo le URL richieste via WEB
+				continue
+			}
+
+			t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
 			if err != nil {
 				fmt.Println(err)
 			}
-			//Time := t.Unix()
+			Time := t.Unix()
 			//Time := t.Format("2006-01-02T15:04:05.000Z") //idem con patate questo è lo stracazzuto ISO8601 meglio c'è solo epoch
 			//fmt.Println(Time)
 			var speed, tts, bytes float64
@@ -268,7 +282,7 @@ func leggizip2(file string) {
 				log.Fatal(err.Error())
 			}
 
-			bytes, err := strconv.ParseFloat(s[4], 8)
+			bytes, err = strconv.ParseFloat(s[4], 8)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -278,34 +292,56 @@ func leggizip2(file string) {
 			status := s[3]
 			ua := s[8]
 
-			u, err := url.Parse(s[6]) //prendi una URL, trattala male, falla a pezzi per ore...
-			if err != nil {
-				log.Fatal(err)
-			}
-			//Urlschema := u.Scheme
+			//fmt.Println(Urlschema)
 			//Urlhost := u.Host
 			Urlpath := u.Path
 			//fmt.Println(Urlpath)
 			//Urlquery := u.RawQuery
 			//Urlfragment := u.Fragment
-			if strings.Contains(Urlpath, "videoteca") {
-				pezziurl := strings.Split(Urlpath, "/")
+			pezziurl := strings.Split(Urlpath, "/")
+			//fmt.Println(pezziurl)
+			/* if len(pezziurl) < 11 {
+				continue
+			} */
+			if ok := strings.Contains(Urlpath, "video="); ok == true { //Prende solo i chunk video per
 				//fmt.Println(pezziurl)
+				//fmt.Println(Urlpath)
 				idvideoteca := pezziurl[6]
+				//fmt.Println(idvideoteca)
 				encoding := pezziurl[10]
-				hasher := md5.New()                                  //prepara a fare un hash
-				hasher.Write([]byte(clientip + idvideoteca + ua))    //hasha tutta la linea
-				Hash := hex.EncodeToString(hasher.Sum(nil))          //estrae l'hash md5sum in versione quasi human readable
-				_, err := client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
+				//fmt.Println(encoding)
+				re := regexp.MustCompile(`QualityLevels\(([0-9]+)\)$`)
+				bitratestr := re.FindStringSubmatch(encoding)[1]
+				bitrate, _ := strconv.ParseFloat(bitratestr, 8)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				bitrateMB := bitrate * bitstoMB
+
+				hasher := md5.New()                                 //prepara a fare un hash
+				hasher.Write([]byte(clientip + idvideoteca + ua))   //hasha tutta la linea
+				Hash := hex.EncodeToString(hasher.Sum(nil))         //estrae l'hash md5sum in versione quasi human readable
+				_, err = client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
 				if err != nil {
 					log.Fatal(err.Error())
 				}
 				//fmt.Println(idvideoteca)
-				if speed < 0.87 {
-					fmt.Printf("%v %v %.3f %v %v %v\n", Hash, idvideoteca, speed, status, clientip, encoding)
-				}
-			}
 
+				fmt.Printf("%v %v %v %v %.3f %v %v %.3f %.3f\n", Urlpath, Time, Hash, idvideoteca, speed, status, clientip, bitrateMB, speed-bitrateMB)
+
+				//hm, _ := stats.HarmonicMean([]float64{1, 2, 3, 4, 5})
+			}
+			if ok := strings.Contains(Urlpath, "DASH"); ok == true { //Prende solo i chunk DASH
+				idvideoteca := pezziurl[6]
+				hasher := md5.New()                                 //prepara a fare un hash
+				hasher.Write([]byte(clientip + idvideoteca + ua))   //hasha tutta la linea
+				Hash := hex.EncodeToString(hasher.Sum(nil))         //estrae l'hash md5sum in versione quasi human readable
+				_, err = client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				fmt.Printf("%v %v %v %v %.3f %v %v\n", Urlpath, Time, Hash, idvideoteca, speed, status, clientip)
+			}
 		}
 	}
 
