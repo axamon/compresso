@@ -3,16 +3,17 @@ package main
 import (
 	"crypto/md5"
 	"net/url"
-	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
-	"time"
+	"sync"
+
+	"gonum.org/v1/gonum/stat"
 
 	//"compress/gzip"
 
 	"bufio"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -47,181 +48,7 @@ type Accesslog struct {
 	Ua        string
 }
 
-//Ingestlogtest recors dei log ingestion
-type Ingestlogtest struct {
-	Type         string
-	Hash         string
-	Time         string
-	URL          string
-	SEIp         string
-	Urlschema    string
-	Urlhost      string
-	Urlpath      string
-	Urlquery     string
-	Urlfragment  string
-	ServerIP     string
-	BytesRead    int
-	BytesToRead  int
-	AssetSize    int
-	Status       string
-	IngestStatus string
-}
-
-//Ingestlog fields per Ingestion logs
-type Ingestlog struct {
-	Type             string
-	Hash             string
-	Time             string
-	URL              string
-	SEIp             string
-	Urlschema        string
-	Urlhost          string
-	Urlpath          string
-	Urlquery         string
-	Urlfragment      string
-	FailOverSvrList  string
-	ServerIP         string
-	BytesRead        int
-	BytesToRead      int
-	AssetSize        int
-	DownloadComplete string
-	DownloadTime     string
-	ReadCallBack     string
-	Status           string
-	Mime             string
-	Revaldidation    string
-	CDSDomain        string
-	ConnectionInfo   string
-	IngestStatus     string
-	RedirectedURL    string
-	OSFailoverAction string
-	BillingCookie    string
-}
-
-// var wg sync.WaitGroup
-
 var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
-//var Test string = "pippo"
-
-func leggizip(file string) {
-	defer wg.Done()
-	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
-
-	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-
-	f, err := os.Open(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	// gr, err := gzip.NewReader(f)
-	gr, err := pgzip.NewReaderN(f, 4096, 100) //sfrutta il gzip con steroide che legge nel futuro per andare più veloce assai
-
-	if err != nil { //se però si impippa qualcosa allora blocca tutto
-		log.Fatal(err)
-		os.Exit(1)
-	}
-
-	fileelements := strings.Split(file, "_") //prende il nome del file di log e recupera i campi utili
-	Type := fileelements[1]                  //qui prede il tipo di log
-	SEIp := fileelements[3]                  //qui prende l'ip della cache
-
-	if Type == "accesslog" { //se il tipo di log è "accesslog" allora fa qualcosa che ancora non ho finito di fare
-		scan := bufio.NewScanner(gr)
-		for scan.Scan() {
-			line := scan.Text()
-			s := strings.Split(line, "\t")
-			// fmt.Println("dopo")
-			t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
-			if err != nil {
-				fmt.Println(err)
-			}
-			Time := t.Format("2006-01-02T15:04:05.000Z") //idem con patate questo è lo stracazzuto ISO8601 meglio c'è solo epoch
-			fmt.Println(Time)
-			continue
-		}
-	}
-
-	if Type == "ingestlog" {
-		scan := bufio.NewScanner(gr) //mettiamo tutto in un buffer che è rapido
-		for scan.Scan() {
-			line := scan.Text()
-			s := strings.Split(line, " ") //splitta le linee secondo il delimitatore usato nel file di log, cambiare all'occorrenza
-
-			if len(s) < 20 { // se i parametri sono meno di 20 allora ricomincia il loop, serve a evitare le linee che non ci interessano
-				continue
-			}
-
-			hasher := md5.New()                                    //prepara a fare un hash
-			hasher.Write([]byte(line))                             //hasha tutta la linea
-			Hash := hex.EncodeToString(hasher.Sum(nil))            //estrae l'hash md5sum in versione quasi human readable
-			val, err := client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
-			// fmt.Println(val)
-			// time.Sleep(3 * time.Second)
-			if val == 0 { //se l'aggiunta dell'hash in redis è positiva prosegue altrimenti riprende il loop
-				continue //questo serve a ingestare solo cose nuove
-			}
-			t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //quant'è bello parsare i timestamp in go :)
-			if err != nil {
-				fmt.Println(err)
-			}
-			Time := t.Format("2006-01-02T15:04:05.000Z") //ISO8601 mon amour
-
-			//gestiamo le url secondo l'RFC ... non mi ricordo qual è
-			u, err := url.Parse(s[1]) //prendi una URL, trattala male, falla a pezzi per ore...
-			if err != nil {
-				log.Fatal(err)
-			}
-			URL := s[1]
-			Urlschema := u.Scheme
-			Urlhost := u.Host
-			Urlpath := u.Path
-			Urlquery := u.RawQuery
-			Urlfragment := u.Fragment
-			//gestione url finita
-			ServerIP := s[3]
-			BytesRead, _ := strconv.Atoi(s[4])   //trasforma il valore in int
-			BytesToRead, _ := strconv.Atoi(s[5]) //trasforma il valore in int
-			AssetSize, _ := strconv.Atoi(s[6])   //trasforma il valore in int
-			Status := s[10]
-			IngestStatus := s[15]
-			//creiamo un record con tutti i campi che ci interessano dentro
-			record := &Ingestlogtest{Type: Type,
-				Hash:         Hash,
-				Time:         Time,
-				URL:          URL,
-				SEIp:         SEIp,
-				Urlschema:    Urlschema,
-				Urlhost:      Urlhost,
-				Urlpath:      Urlpath,
-				Urlquery:     Urlquery,
-				Urlfragment:  Urlfragment,
-				ServerIP:     ServerIP,
-				BytesRead:    BytesRead,
-				BytesToRead:  BytesToRead,
-				AssetSize:    AssetSize,
-				Status:       Status,
-				IngestStatus: IngestStatus}
-
-			out, err := json.Marshal(record) //con il record da solo ci facciamo una sega, serve encodarlo con il marshmellon in json
-			if err != nil {
-				panic(err)
-			}
-			clienterr := client.LPush("codarecords", out).Err() //metti il json dentro una lista di redis
-			if clienterr != nil {
-				log.Fatal(clienterr)
-			}
-		}
-		//fmt.Printf("%+v\n", l)
-
-	}
-	return //terminata la Go routine!!! :)
-}
 
 func leggizip2(file string) {
 	defer wg.Done()
@@ -249,7 +76,7 @@ func leggizip2(file string) {
 
 	fileelements := strings.Split(file, "_") //prende il nome del file di log e recupera i campi utili
 	Type := fileelements[1]                  //qui prede il tipo di log
-	SEIp := fileelements[3]                  //qui prende l'ip della cache
+	//SEIp := fileelements[3]                  //qui prende l'ip della cache
 
 	if Type == "accesslog" { //se il tipo di log è "accesslog" allora fa qualcosa che ancora non ho finito di fare
 		scan := bufio.NewScanner(gr)
@@ -263,16 +90,16 @@ func leggizip2(file string) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			Urlschema := u.Scheme
+			/* Urlschema := u.Scheme
 			if Urlschema != "https" { //fa passare solo le URL richieste via WEB
 				continue
-			}
+			} */
 
-			t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
+			//t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
 			if err != nil {
 				fmt.Println(err)
 			}
-			Time := t.Unix()
+			//	Time := t.Unix()
 			//Time := t.Format("2006-01-02T15:04:05.000Z") //idem con patate questo è lo stracazzuto ISO8601 meglio c'è solo epoch
 			//fmt.Println(Time)
 			var speed, tts, bytes float64
@@ -289,7 +116,7 @@ func leggizip2(file string) {
 
 			speed = (bytes / tts)
 			clientip := s[2]
-			status := s[3]
+			//status := s[3]
 			ua := s[8]
 
 			//fmt.Println(Urlschema)
@@ -303,20 +130,20 @@ func leggizip2(file string) {
 			/* if len(pezziurl) < 11 {
 				continue
 			} */
-			if ok := strings.Contains(Urlpath, "video="); ok == true { //Prende solo i chunk video per
+			if ok := strings.HasPrefix(Urlpath, "videoteca"); ok == true { //Prende solo i chunk video per
 				//fmt.Println(pezziurl)
 				//fmt.Println(Urlpath)
 				idvideoteca := pezziurl[6]
 				//fmt.Println(idvideoteca)
-				encoding := pezziurl[10]
+				//encoding := pezziurl[10]
 				//fmt.Println(encoding)
-				re := regexp.MustCompile(`QualityLevels\(([0-9]+)\)$`)
-				bitratestr := re.FindStringSubmatch(encoding)[1]
-				bitrate, _ := strconv.ParseFloat(bitratestr, 8)
+				//re := regexp.MustCompile(`QualityLevels\(([0-9]+)\)$`)
+				//bitratestr := re.FindStringSubmatch(encoding)[1]
+				//bitrate, _ := strconv.ParseFloat(bitratestr, 8)
 				if err != nil {
 					log.Fatal(err.Error())
 				}
-				bitrateMB := bitrate * bitstoMB
+				//bitrateMB := bitrate * bitstoMB
 
 				hasher := md5.New()                                 //prepara a fare un hash
 				hasher.Write([]byte(clientip + idvideoteca + ua))   //hasha tutta la linea
@@ -327,8 +154,15 @@ func leggizip2(file string) {
 				}
 				//fmt.Println(idvideoteca)
 
-				fmt.Printf("%v %v %v %v %.3f %v %v %.3f %.3f\n", Urlpath, Time, Hash, idvideoteca, speed, status, clientip, bitrateMB, speed-bitrateMB)
-
+				//	fmt.Printf("%v %v %v %.3f %v %v %.3f %.3f\n", Time, Hash, idvideoteca, speed, status, clientip, bitrateMB, speed-bitrateMB)
+				/* clientiparsed := net.ParseIP(clientip)
+				//fmt.Println(clientiparsed)
+				clientipint := IPv4ToInt(clientiparsed)
+				idvideotecaint, err := strconv.Atoi(idvideoteca)
+				if err != nil {
+					log.Fatal(err.Error())
+				} */
+				ingestafruizioni(Hash, speed)
 				//hm, _ := stats.HarmonicMean([]float64{1, 2, 3, 4, 5})
 			}
 			if ok := strings.Contains(Urlpath, "DASH"); ok == true { //Prende solo i chunk DASH
@@ -340,94 +174,76 @@ func leggizip2(file string) {
 				if err != nil {
 					log.Fatal(err.Error())
 				}
-				fmt.Printf("%v %v %v %v %.3f %v %v\n", Urlpath, Time, Hash, idvideoteca, speed, status, clientip)
+				//	fmt.Printf("%v %v %v %.3f %v %v\n", Time, Hash, idvideoteca, speed, status, clientip)
+				/* clientiparsed := net.ParseIP(clientip)
+				clientipint := IPv4ToInt(clientiparsed)
+				idvideotecaint, err := strconv.Atoi(idvideoteca)
+				if err != nil {
+					log.Fatal(err.Error())
+				} */
+				ingestafruizioni(Hash, speed)
 			}
 		}
 	}
 
-	if Type == "ingestlog" {
-		scan := bufio.NewScanner(gr) //mettiamo tutto in un buffer che è rapido
-		for scan.Scan() {
-			line := scan.Text()
-			s := strings.Split(line, " ") //splitta le linee secondo il delimitatore usato nel file di log, cambiare all'occorrenza
-
-			if len(s) < 20 { // se i parametri sono meno di 20 allora ricomincia il loop, serve a evitare le linee che non ci interessano
-				continue
-			}
-
-			hasher := md5.New()                                    //prepara a fare un hash
-			hasher.Write([]byte(line))                             //hasha tutta la linea
-			Hash := hex.EncodeToString(hasher.Sum(nil))            //estrae l'hash md5sum in versione quasi human readable
-			val, err := client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
-			// fmt.Println(val)
-			// time.Sleep(3 * time.Second)
-			if val == 0 { //se l'aggiunta dell'hash in redis è positiva prosegue altrimenti riprende il loop
-				continue //questo serve a ingestare solo cose nuove
-			}
-			t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //quant'è bello parsare i timestamp in go :)
-			if err != nil {
-				fmt.Println(err)
-			}
-			Time := t.Format("2006-01-02T15:04:05.000Z") //ISO8601 mon amour
-
-			//gestiamo le url secondo l'RFC ... non mi ricordo qual è
-			u, err := url.Parse(s[1]) //prendi una URL, trattala male, falla a pezzi per ore...
-			if err != nil {
-				log.Fatal(err)
-			}
-			URL := s[1]
-			Urlschema := u.Scheme
-			Urlhost := u.Host
-			Urlpath := u.Path
-			Urlquery := u.RawQuery
-			Urlfragment := u.Fragment
-			//gestione url finita
-			ServerIP := s[3]
-			BytesRead, _ := strconv.Atoi(s[4])   //trasforma il valore in int
-			BytesToRead, _ := strconv.Atoi(s[5]) //trasforma il valore in int
-			AssetSize, _ := strconv.Atoi(s[6])   //trasforma il valore in int
-			Status := s[10]
-			IngestStatus := s[15]
-			//creiamo un record con tutti i campi che ci interessano dentro
-			record := &Ingestlogtest{Type: Type,
-				Hash:         Hash,
-				Time:         Time,
-				URL:          URL,
-				SEIp:         SEIp,
-				Urlschema:    Urlschema,
-				Urlhost:      Urlhost,
-				Urlpath:      Urlpath,
-				Urlquery:     Urlquery,
-				Urlfragment:  Urlfragment,
-				ServerIP:     ServerIP,
-				BytesRead:    BytesRead,
-				BytesToRead:  BytesToRead,
-				AssetSize:    AssetSize,
-				Status:       Status,
-				IngestStatus: IngestStatus}
-
-			out, err := json.Marshal(record) //con il record da solo ci facciamo una sega, serve encodarlo con il marshmellon in json
-			if err != nil {
-				panic(err)
-			}
-			clienterr := client.LPush("codarecords", out).Err() //metti il json dentro una lista di redis
-			if clienterr != nil {
-				log.Fatal(clienterr)
-			}
-		}
-		//fmt.Printf("%+v\n", l)
-
-	}
 	return //terminata la Go routine!!! :)
 }
 
+var Contatori struct {
+	sync.RWMutex
+	numchunks map[string]int
+	//sumspeeds       map[string]float64
+	//sumsquarespeeds map[string]float64
+	fruizioni map[string]bool
+	details   map[string][]float64
+}
+
 func main() {
+
+	Contatori.fruizioni = make(map[string]bool)
+	Contatori.details = make(map[string][]float64)
+	Contatori.numchunks = make(map[string]int)
+
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
 		wg.Add()
 		go leggizip2(file)
 	}
+
 	wg.Wait()
+	fmt.Println(len(Contatori.fruizioni))
+	//time.Sleep(3 * time.Second)
+	for record := range Contatori.fruizioni {
+
+		//fmt.Println(numchunks[record], sumspeeds[record], sumsquarespeeds[record])
+		fmt.Println(record)
+		//mean := stat.Mean(Contatori.details[record], nil)
+		fmt.Printf("Media: %.3f\n", stat.Mean(Contatori.details[record], nil))
+		harmonicmean := stat.HarmonicMean(Contatori.details[record], nil)
+		fmt.Printf("MediaArmonica: %.3f\n", stat.HarmonicMean(Contatori.details[record], nil))
+		mode, _ := stat.Mode(Contatori.details[record], nil)
+		fmt.Printf("Moda: %.3f\n", mode)
+		nums := Contatori.details[record]
+		sort.Float64s(nums)
+		fmt.Printf("Mediana: %.3f\n", stat.Quantile(0.5, stat.Empirical, nums, nil))
+		stdev := stat.StdDev(Contatori.details[record], nil)
+		fmt.Printf("StDev: %.3f\n", stat.StdDev(Contatori.details[record], nil))
+		fmt.Printf("Skew: %.3f\n", stat.Skew(Contatori.details[record], nil))
+		fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(Contatori.details[record], nil))
+
+		fmt.Printf("NumChunks: %v\n", len(Contatori.details[record]))
+		e := 0
+		for _, n := range nums {
+			if (n-harmonicmean)/stdev < (-3 * stdev) {
+				e++
+			}
+		}
+		if e > 0 {
+			fmt.Printf("ERRORI: %d\n", e)
+		}
+		fmt.Println()
+
+	}
 
 	return
 }

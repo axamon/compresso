@@ -1,29 +1,26 @@
 package main
 
-import "sync"
-
-type fruizioni struct { //creo un type dove mettere i dati di ogni singola fruizione
-	clientipint    int
-	idvideoteca    int
-	sumspeeds      int
-	sumquadspeeds  int
-	numvideochunks int
+type Fruizione struct { //creo un type dove mettere i dati di ogni singola fruizione
+	hashfruizione string
+	clientip      string
+	idvideoteca   string
 }
 
-var h = make(map[string]*fruizioni) //creo una mappa e la istanzio per dare un nome (hashstruizione) a oghi raccolta dati
+//var details = make(map[string][]float64)
+//var fruizioni = make(map[string]bool)
 
-var counter struct {
-	sync.RWMutex                       //locka e slocka l'accesso ai dati
-	h            map[string]*fruizioni //bisogna refenziale con * che indica una istanza e non il type stesso
-}
+//var numchunks = make(map[string]int)
 
-func ingestafruizioni(hashfruizione string, clientipint, idvideoteca, speed int) {
-	counter.Lock()
-	counter.h[hashfruizione].idvideoteca = idvideoteca
-	counter.h[hashfruizione].clientipint = clientipint
-	counter.h[hashfruizione].numvideochunks++
-	counter.h[hashfruizione].sumspeeds += speed
-	counter.h[hashfruizione].sumquadspeeds += (speed * speed)
-	counter.Unlock()
+//var sumspeeds = make(map[string]float64)
+//var sumsquarespeeds = make(map[string]float64)
 
+func ingestafruizioni(hashfruizione string, speed float64) {
+	Contatori.Lock()
+	Contatori.fruizioni[hashfruizione] = true
+	Contatori.numchunks[hashfruizione]++
+	Contatori.details[hashfruizione] = append(Contatori.details[hashfruizione], speed)
+	//sumspeeds[hashfruizione] += speed
+	//sumsquarespeeds[hashfruizione] += (speed * speed)
+	Contatori.Unlock()
+	return
 }
