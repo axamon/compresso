@@ -70,7 +70,7 @@ func leggizip2(file string) {
 	gr, err := pgzip.NewReaderN(f, 4096, 100) //sfrutta il gzip con steroide che legge nel futuro per andare più veloce assai
 
 	if err != nil { //se però si impippa qualcosa allora blocca tutto
-		log.Fatal(err)
+		log.Fatal(err.Error())
 		os.Exit(1)
 	}
 
@@ -212,10 +212,8 @@ func main() {
 
 	wg.Wait()
 	fmt.Println(len(Contatori.fruizioni))
-	//time.Sleep(3 * time.Second)
 	for record := range Contatori.fruizioni {
 
-		//fmt.Println(numchunks[record], sumspeeds[record], sumsquarespeeds[record])
 		fmt.Println(record)
 		//mean := stat.Mean(Contatori.details[record], nil)
 		fmt.Printf("Media: %.3f\n", stat.Mean(Contatori.details[record], nil))
