@@ -199,6 +199,7 @@ var Contatori = contatori{}
 
 func main() {
 
+	//se il file gobfile non esiste lo crea
 	if _, err := os.Stat(gobfile); os.IsNotExist(err) {
 		os.Create(gobfile)
 	}
@@ -208,11 +209,13 @@ func main() {
 	Contatori.Details = make(map[string][]float64)
 	Contatori.Numchunks = make(map[string]int)
 
+	//Carico dentro Contatori i dati salvati precedentemente
 	err := load(gobfile, &Contatori) //Carica in Contatori i dati salvati sul gobfile
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
+	//Per tutti i file passati come argomento esegue una goroutine
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
 		wg.Add()
@@ -228,12 +231,14 @@ func main() {
 	}
 	fmt.Println("Encoded Struct ", b) */
 
+	//Salva i dati in Contatori dentro il gobfile
 	err = save(gobfile, Contatori)
-
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
+	//Crea una variabile di tipo contatori per caricare tutti i dati salvati
+	//nel gobfile
 	var ContatoriDecoded contatori
 	err = load(gobfile, &ContatoriDecoded)
 	if err != nil {
@@ -263,11 +268,14 @@ func main() {
 		fmt.Printf("NumChunks: %v\n", len(ContatoriDecoded.Details[record]))
 		e := 0
 		for _, n := range nums {
-			if (n-harmonicmean)/stdev < (-3 * stdev) {
+			var sigma float64
+			sigma = 3 //tot sigma di distanza
+			if (n-harmonicmean)/stdev < (-sigma * stdev) {
 				e++
 			}
 		}
 		if e > 0 {
+			//se sono presenti errori ne mostra il quantitativo
 			fmt.Printf("ERRORI: %d\n", e)
 		}
 		fmt.Println()
