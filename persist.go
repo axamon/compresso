@@ -10,12 +10,12 @@ import (
 
 const gobfile = "./contatori.gob"
 
-var GobfileLock sync.RWMutex
+var gobfileLock sync.RWMutex
 
 // Encode via Gob to file
-func Save(path string, object interface{}) error {
-	GobfileLock.Lock()
-	defer GobfileLock.Unlock()
+func save(path string, object interface{}) error {
+	gobfileLock.Lock()
+	defer gobfileLock.Unlock()
 	file, err := os.Create(path)
 	if err == nil {
 		encoder := gob.NewEncoder(file)
@@ -26,9 +26,9 @@ func Save(path string, object interface{}) error {
 }
 
 // Decode Gob file
-func Load(path string, object interface{}) error {
-	GobfileLock.RLock()
-	defer GobfileLock.RUnlock()
+func load(path string, object interface{}) error {
+	gobfileLock.RLock()
+	defer gobfileLock.RUnlock()
 	file, err := os.Open(path)
 	if err == nil {
 		decoder := gob.NewDecoder(file)
@@ -38,7 +38,7 @@ func Load(path string, object interface{}) error {
 	return err
 }
 
-func Check(e error) {
+func check(e error) {
 	if e != nil {
 		_, file, line, _ := runtime.Caller(1)
 		fmt.Println(line, "\t", file, "\n", e)

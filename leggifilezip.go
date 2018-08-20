@@ -208,7 +208,7 @@ func main() {
 	Contatori.Details = make(map[string][]float64)
 	Contatori.Numchunks = make(map[string]int)
 
-	err := Load(gobfile, &Contatori) //Carica in Contatori i dati salvati sul gobfile
+	err := load(gobfile, &Contatori) //Carica in Contatori i dati salvati sul gobfile
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -228,14 +228,14 @@ func main() {
 	}
 	fmt.Println("Encoded Struct ", b) */
 
-	err = Save(gobfile, Contatori)
+	err = save(gobfile, Contatori)
 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	var ContatoriDecoded contatori
-	err = Load(gobfile, &ContatoriDecoded)
+	err = load(gobfile, &ContatoriDecoded)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

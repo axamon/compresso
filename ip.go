@@ -4,17 +4,18 @@ import (
 	"net"
 )
 
+//IP è l'indirizzo ip
 type IP struct {
 	ip   net.IP
 	ipv6 bool
 }
 
-func MakeIPv4(a, b, c, d byte) IP {
+func makeIPv4(a, b, c, d byte) IP {
 	ip := IP{net.IPv4(a, b, c, d), false}
 	return ip
 }
 
-func IPv4ToInt(ip net.IP) uint64 {
+func iPv4ToInt(ip net.IP) uint64 {
 	switch len(ip) {
 	case 4: // IPv4
 		return uint64(ip[0])<<24 | uint64(ip[1])<<16 | uint64(ip[2])<<8 | uint64(ip[3])
@@ -25,7 +26,7 @@ func IPv4ToInt(ip net.IP) uint64 {
 	}
 }
 
-func IntToIPv4(ipInt uint64) net.IP {
+func intToIPv4(ipInt uint64) net.IP {
 	return net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 }
 

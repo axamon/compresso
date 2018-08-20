@@ -4,6 +4,7 @@ import "sync"
 
 var lock sync.RWMutex
 
+//Fruizione conserva i dati utente delle singole fruizioni
 type Fruizione struct { //creo un type dove mettere i dati di ogni singola fruizione
 	hashfruizione string
 	clientip      string
