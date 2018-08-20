@@ -6,7 +6,6 @@ import (
 	"runtime"
 	"sort"
 	"strconv"
-	"sync"
 
 	"gonum.org/v1/gonum/stat"
 
@@ -189,24 +188,30 @@ func leggizip2(file string) {
 	return //terminata la Go routine!!! :)
 }
 
-var Contatori struct {
-	sync.RWMutex
-	numchunks map[string]int
-	//sumspeeds       map[string]float64
-	//sumsquarespeeds map[string]float64
-	fruizioni map[string]bool
-	details   map[string][]float64
+type contatori struct {
+	Numchunks map[string]int
+	Fruizioni map[string]bool
+	Details   map[string][]float64
 }
+
+//Contatori contiene tutte le informazioni delle varie fruizioni
+var Contatori = contatori{}
 
 func main() {
 
-	/* Contatori.fruizioni = make(map[string]bool)
-	Contatori.details = make(map[string][]float64)
-	Contatori.numchunks = make(map[string]int)
-	*/
-	err := Load(file, &Contatori)
-	Check(err)
-	//fmt.Println(datafrom)
+	if _, err := os.Stat(gobfile); os.IsNotExist(err) {
+		os.Create(gobfile)
+	}
+
+	//Istanzio le mappe interne a Contatori
+	Contatori.Fruizioni = make(map[string]bool)
+	Contatori.Details = make(map[string][]float64)
+	Contatori.Numchunks = make(map[string]int)
+
+	err := Load(gobfile, &Contatori) //Carica in Contatori i dati salvati sul gobfile
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
@@ -214,28 +219,48 @@ func main() {
 		go leggizip2(file)
 	}
 
-	wg.Wait()
-	err = Save(file, Contatori)
-	Check(err)
-	fmt.Println(len(Contatori.fruizioni))
-	for record := range Contatori.fruizioni {
+	wg.Wait() //Attende che terminino tutte le go routines
+
+	/* var b bytes.Buffer
+	e := gob.NewEncoder(&b)
+	if err := e.Encode(Contatori); err != nil {
+		panic(err)
+	}
+	fmt.Println("Encoded Struct ", b) */
+
+	err = Save(gobfile, Contatori)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var ContatoriDecoded contatori
+	err = Load(gobfile, &ContatoriDecoded)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	fmt.Println(ContatoriDecoded.Fruizioni)
+
+	fmt.Println(len(ContatoriDecoded.Fruizioni))
+	for record := range ContatoriDecoded.Fruizioni {
 
 		fmt.Println(record)
 		//mean := stat.Mean(Contatori.details[record], nil)
-		fmt.Printf("Media: %.3f\n", stat.Mean(Contatori.details[record], nil))
-		harmonicmean := stat.HarmonicMean(Contatori.details[record], nil)
-		fmt.Printf("MediaArmonica: %.3f\n", stat.HarmonicMean(Contatori.details[record], nil))
-		mode, _ := stat.Mode(Contatori.details[record], nil)
+		fmt.Printf("Media: %.3f\n", stat.Mean(ContatoriDecoded.Details[record], nil))
+		harmonicmean := stat.HarmonicMean(ContatoriDecoded.Details[record], nil)
+		fmt.Printf("MediaArmonica: %.3f\n", stat.HarmonicMean(ContatoriDecoded.Details[record], nil))
+		mode, _ := stat.Mode(ContatoriDecoded.Details[record], nil)
 		fmt.Printf("Moda: %.3f\n", mode)
-		nums := Contatori.details[record]
+		nums := ContatoriDecoded.Details[record]
 		sort.Float64s(nums)
 		fmt.Printf("Mediana: %.3f\n", stat.Quantile(0.5, stat.Empirical, nums, nil))
-		stdev := stat.StdDev(Contatori.details[record], nil)
-		fmt.Printf("StDev: %.3f\n", stat.StdDev(Contatori.details[record], nil))
-		fmt.Printf("Skew: %.3f\n", stat.Skew(Contatori.details[record], nil))
-		fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(Contatori.details[record], nil))
+		stdev := stat.StdDev(ContatoriDecoded.Details[record], nil)
+		fmt.Printf("StDev: %.3f\n", stat.StdDev(ContatoriDecoded.Details[record], nil))
+		fmt.Printf("Skew: %.3f\n", stat.Skew(ContatoriDecoded.Details[record], nil))
+		fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(ContatoriDecoded.Details[record], nil))
 
-		fmt.Printf("NumChunks: %v\n", len(Contatori.details[record]))
+		fmt.Printf("NumChunks: %v\n", len(ContatoriDecoded.Details[record]))
 		e := 0
 		for _, n := range nums {
 			if (n-harmonicmean)/stdev < (-3 * stdev) {

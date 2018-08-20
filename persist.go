@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sync"
 )
 
-const file = "/tmp/test.gob"
+const gobfile = "./contatori.gob"
+
+var GobfileLock sync.RWMutex
 
 // Encode via Gob to file
 func Save(path string, object interface{}) error {
+	GobfileLock.Lock()
+	defer GobfileLock.Unlock()
 	file, err := os.Create(path)
 	if err == nil {
 		encoder := gob.NewEncoder(file)
@@ -22,6 +27,8 @@ func Save(path string, object interface{}) error {
 
 // Decode Gob file
 func Load(path string, object interface{}) error {
+	GobfileLock.RLock()
+	defer GobfileLock.RUnlock()
 	file, err := os.Open(path)
 	if err == nil {
 		decoder := gob.NewDecoder(file)
