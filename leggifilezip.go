@@ -200,9 +200,13 @@ var Contatori struct {
 
 func main() {
 
-	Contatori.fruizioni = make(map[string]bool)
+	/* Contatori.fruizioni = make(map[string]bool)
 	Contatori.details = make(map[string][]float64)
 	Contatori.numchunks = make(map[string]int)
+	*/
+	err := Load(file, &Contatori)
+	Check(err)
+	//fmt.Println(datafrom)
 
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
@@ -211,6 +215,8 @@ func main() {
 	}
 
 	wg.Wait()
+	err = Save(file, Contatori)
+	Check(err)
 	fmt.Println(len(Contatori.fruizioni))
 	for record := range Contatori.fruizioni {
 
