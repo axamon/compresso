@@ -13,6 +13,7 @@ import (
 
 	"bufio"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -81,6 +82,10 @@ func leggizip2(file string) {
 		scan := bufio.NewScanner(gr)
 		for scan.Scan() {
 			line := scan.Text()
+			err := escludidoppioni(line)
+			if err != nil {
+				continue
+			}
 			if !strings.HasPrefix(line, "[") { //se la linea non inzia con [ allora salta
 				continue
 			}
@@ -161,7 +166,7 @@ func leggizip2(file string) {
 				if err != nil {
 					log.Fatal(err.Error())
 				} */
-				ingestafruizioni(Hash, speed)
+				ingestafruizioni(Hash, clientip, idvideoteca, speed)
 				//hm, _ := stats.HarmonicMean([]float64{1, 2, 3, 4, 5})
 			}
 			if ok := strings.Contains(Urlpath, "DASH"); ok == true { //Prende solo i chunk DASH
@@ -180,7 +185,7 @@ func leggizip2(file string) {
 				if err != nil {
 					log.Fatal(err.Error())
 				} */
-				ingestafruizioni(Hash, speed)
+				ingestafruizioni(Hash, clientip, idvideoteca, speed)
 			}
 		}
 	}
@@ -188,29 +193,41 @@ func leggizip2(file string) {
 	return //terminata la Go routine!!! :)
 }
 
-type contatori struct {
-	Numchunks map[string]int
-	Fruizioni map[string]bool
-	Details   map[string][]float64
+type Fruizioni struct {
+	Hashfruizione map[string]bool
+	Clientip      map[string]string
+	Idvideoteca   map[string]string
+	Details       map[string][]float64 `json:"-"`
 }
 
-//Contatori contiene tutte le informazioni delle varie fruizioni
-var Contatori = contatori{}
+type Fruizioniexport struct {
+	Hashfruizione string `json:"-"` //Non permette a json di esportare il campo
+	Clientip      string
+	Idvideoteca   string
+	Errori        int
+}
+
+//F contiene tutte le informazioni delle varie fruizioni
+//è la variabile che verrà resa persistente su disco
+var F = Fruizioni{}
 
 func main() {
 
 	//se il file gobfile non esiste lo crea
+	//gobfile è il file dove verrà resa persistente
 	if _, err := os.Stat(gobfile); os.IsNotExist(err) {
 		os.Create(gobfile)
 	}
 
-	//Istanzio le mappe interne a Contatori
-	Contatori.Fruizioni = make(map[string]bool)
-	Contatori.Details = make(map[string][]float64)
-	Contatori.Numchunks = make(map[string]int)
+	hashline = make(map[string]bool)
+
+	F.Hashfruizione = make(map[string]bool)
+	F.Clientip = make(map[string]string)
+	F.Idvideoteca = make(map[string]string)
+	F.Details = make(map[string][]float64)
 
 	//Carico dentro Contatori i dati salvati precedentemente
-	err := load(gobfile, &Contatori) //Carica in Contatori i dati salvati sul gobfile
+	err := load(gobfile, &F) //Carica in Contatori i dati salvati sul gobfile
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -232,51 +249,67 @@ func main() {
 	fmt.Println("Encoded Struct ", b) */
 
 	//Salva i dati in Contatori dentro il gobfile
-	err = save(gobfile, Contatori)
+	err = save(gobfile, F)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	//Crea una variabile di tipo contatori per caricare tutti i dati salvati
 	//nel gobfile
-	var ContatoriDecoded contatori
-	err = load(gobfile, &ContatoriDecoded)
+	var FruizioniDecoded Fruizioni
+	err = load(gobfile, &FruizioniDecoded)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	fmt.Println(ContatoriDecoded.Fruizioni)
+	//fmt.Println(FruizioniDecoded)
 
-	fmt.Println(len(ContatoriDecoded.Fruizioni))
-	for record := range ContatoriDecoded.Fruizioni {
+	numFruizioni := len(FruizioniDecoded.Hashfruizione)
+	fmt.Println(numFruizioni)
+	for record := range FruizioniDecoded.Hashfruizione {
 
 		fmt.Println(record)
-		//mean := stat.Mean(Contatori.details[record], nil)
-		fmt.Printf("Media: %.3f\n", stat.Mean(ContatoriDecoded.Details[record], nil))
-		harmonicmean := stat.HarmonicMean(ContatoriDecoded.Details[record], nil)
-		fmt.Printf("MediaArmonica: %.3f\n", stat.HarmonicMean(ContatoriDecoded.Details[record], nil))
-		mode, _ := stat.Mode(ContatoriDecoded.Details[record], nil)
+		fmt.Println(FruizioniDecoded.Clientip[record])
+		fmt.Println(FruizioniDecoded.Idvideoteca[record])
+		speeds := FruizioniDecoded.Details[record]
+		mean := stat.Mean(FruizioniDecoded.Details[record], nil)
+		fmt.Printf("Media: %.3f\n", stat.Mean(speeds, nil))
+		//harmonicmean := stat.HarmonicMean(speeds, nil)
+		fmt.Printf("MediaArmonica: %.3f\n", stat.HarmonicMean(speeds, nil))
+		mode, _ := stat.Mode(speeds, nil)
 		fmt.Printf("Moda: %.3f\n", mode)
-		nums := ContatoriDecoded.Details[record]
-		sort.Float64s(nums)
+		nums := speeds
+		sort.Float64s(nums) //Mette in ordine nums
 		fmt.Printf("Mediana: %.3f\n", stat.Quantile(0.5, stat.Empirical, nums, nil))
-		stdev := stat.StdDev(ContatoriDecoded.Details[record], nil)
-		fmt.Printf("StDev: %.3f\n", stat.StdDev(ContatoriDecoded.Details[record], nil))
-		fmt.Printf("Skew: %.3f\n", stat.Skew(ContatoriDecoded.Details[record], nil))
-		fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(ContatoriDecoded.Details[record], nil))
+		stdev := stat.StdDev(speeds, nil)
+		fmt.Printf("StDev: %.3f\n", stat.StdDev(speeds, nil))
+		fmt.Printf("Skew: %.3f\n", stat.Skew(speeds, nil))
+		fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(speeds, nil))
 
-		fmt.Printf("NumChunks: %v\n", len(ContatoriDecoded.Details[record]))
+		fmt.Printf("NumChunks: %v\n", len(speeds))
 		e := 0
 		for _, n := range nums {
 			var sigma float64
-			sigma = 3 //tot sigma di distanza
-			if (n-harmonicmean)/stdev < (-sigma * stdev) {
+			sigma = 1 //tot sigma di distanza
+			if (n-mean)/stdev < (-sigma * stdev) {
 				e++
 			}
 		}
 		if e > 0 {
 			//se sono presenti errori ne mostra il quantitativo
 			fmt.Printf("ERRORI: %d\n", e)
+			fe := new(Fruizioniexport)
+			fe.Hashfruizione = record
+			fe.Clientip = FruizioniDecoded.Clientip[record]
+			fe.Idvideoteca = FruizioniDecoded.Idvideoteca[record]
+			fe.Errori = e
+
+			l, err := json.Marshal(fe)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(string(l))
+			fmt.Println()
 		}
 		fmt.Println()
 

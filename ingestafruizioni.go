@@ -3,19 +3,18 @@ package main
 import "sync"
 
 var lock sync.RWMutex
+var detailslock sync.RWMutex
 
-//Fruizione conserva i dati utente delle singole fruizioni
-type Fruizione struct { //creo un type dove mettere i dati di ogni singola fruizione
-	hashfruizione string
-	clientip      string
-	idvideoteca   string
-}
-
-func ingestafruizioni(hashfruizione string, speed float64) {
-	lock.Lock()
-	Contatori.Fruizioni[hashfruizione] = true
-	Contatori.Numchunks[hashfruizione]++
-	Contatori.Details[hashfruizione] = append(Contatori.Details[hashfruizione], speed)
-	lock.Unlock()
+func ingestafruizioni(hashfruizione, clientip, idvideoteca string, speed float64) {
+	if F.Hashfruizione[hashfruizione] == false {
+		lock.Lock()
+		F.Hashfruizione[hashfruizione] = true
+		F.Clientip[hashfruizione] = clientip
+		F.Idvideoteca[hashfruizione] = idvideoteca
+		lock.Unlock()
+	}
+	detailslock.Lock()
+	F.Details[hashfruizione] = append(F.Details[hashfruizione], speed)
+	detailslock.Unlock()
 	return
 }
