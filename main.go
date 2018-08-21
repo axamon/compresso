@@ -213,21 +213,34 @@ var F = Fruizioni{}
 
 func main() {
 
-	//se il file gobfile non esiste lo crea
+	hashline = make(map[string]bool)
+
+	//se il file hashlinefile non esiste lo crea
 	//gobfile è il file dove verrà resa persistente
-	if _, err := os.Stat(gobfile); os.IsNotExist(err) {
-		os.Create(gobfile)
+	if _, err := os.Stat(hashlinefile); os.IsNotExist(err) {
+		os.Create(hashlinefile)
 	}
 
-	hashline = make(map[string]bool)
+	//Carico dentro hashline i dati salvati precedentemente
+	err := load(hashlinefile, &hashline) //Carica in Contatori i dati salvati sul gobfile
+	if err != nil {
+		fmt.Println(err.Error()) //se da errore forse manca il file... non importa se è il primo avvio
+	}
+	defer save(hashlinefile, hashline)
 
 	F.Hashfruizione = make(map[string]bool)
 	F.Clientip = make(map[string]string)
 	F.Idvideoteca = make(map[string]string)
 	F.Details = make(map[string][]float64)
 
+	//se il file gobfile non esiste lo crea
+	//gobfile è il file dove verrà resa persistente
+	if _, err := os.Stat(gobfile); os.IsNotExist(err) {
+		os.Create(gobfile)
+	}
+
 	//Carico dentro Contatori i dati salvati precedentemente
-	err := load(gobfile, &F) //Carica in Contatori i dati salvati sul gobfile
+	err = load(gobfile, &F) //Carica in Contatori i dati salvati sul gobfile
 	if err != nil {
 		fmt.Println(err.Error())
 	}

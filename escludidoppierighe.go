@@ -7,6 +7,8 @@ import (
 	"sync"
 )
 
+const hashlinefile = "./hashline.gob"
+
 var escludidoppionilock sync.RWMutex
 
 var hashline map[string]bool
