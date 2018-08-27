@@ -166,8 +166,8 @@ func main() {
 			fe.Hashfruizione = record
 			fe.Clientip = FruizioniDecoded.Clientip[record]
 			fe.Idvideoteca = FruizioniDecoded.Idvideoteca[record]
-			/* 	fe.Giorno = Giorno
-			fe.Errori = e */
+			//e.Giorno = Giorno
+			fe.Errori = e
 
 			l, err := json.Marshal(fe)
 			if err != nil {

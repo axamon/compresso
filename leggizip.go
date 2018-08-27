@@ -17,12 +17,6 @@ func leggizip2(file string) {
 	defer wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
 
-	/* 	client := redis.NewClient(&redis.Options{ //connettiti a Redis server
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	}) */
-
 	f, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)
@@ -114,43 +108,13 @@ func leggizip2(file string) {
 				}
 				//bitrateMB := bitrate * bitstoMB
 				Hash := md5sumOfString(clientip + idvideoteca + ua)
-				/* hasher := md5.New()                                 //prepara a fare un hash
-				hasher.Write([]byte(clientip + idvideoteca + ua))   //hasha tutta la linea
-				Hash := hex.EncodeToString(hasher.Sum(nil))         //estrae l'hash md5sum in versione quasi human readable
-				_, err = client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
-				if err != nil {
-					log.Fatal(err.Error())
-				} */
-				//fmt.Println(idvideoteca)
 
-				//	fmt.Printf("%v %v %v %.3f %v %v %.3f %.3f\n", Time, Hash, idvideoteca, speed, status, clientip, bitrateMB, speed-bitrateMB)
-				/* clientiparsed := net.ParseIP(clientip)
-				//fmt.Println(clientiparsed)
-				clientipint := IPv4ToInt(clientiparsed)
-				idvideotecaint, err := strconv.Atoi(idvideoteca)
-				if err != nil {
-					log.Fatal(err.Error())
-				} */
 				ingestafruizioni(Hash, clientip, idvideoteca, speed)
-				//hm, _ := stats.HarmonicMean([]float64{1, 2, 3, 4, 5})
 			}
 			if ok := strings.Contains(Urlpath, "DASH"); ok == true { //Prende solo i chunk DASH
 				idvideoteca := pezziurl[6]
 				Hash := md5sumOfString(clientip + idvideoteca + ua)
-				/* 	hasher := md5.New()                                 //prepara a fare un hash
-				hasher.Write([]byte())                              //hasha tutta la linea
-				Hash := hex.EncodeToString(hasher.Sum(nil))         //estrae l'hash md5sum in versione quasi human readable
-				_, err = client.SAdd("recordhashes", Hash).Result() //finalmente usiamo l'hash dentro a redis
-				if err != nil {
-					log.Fatal(err.Error())
-				} */
-				//	fmt.Printf("%v %v %v %.3f %v %v\n", Time, Hash, idvideoteca, speed, status, clientip)
-				/* clientiparsed := net.ParseIP(clientip)
-				clientipint := IPv4ToInt(clientiparsed)
-				idvideotecaint, err := strconv.Atoi(idvideoteca)
-				if err != nil {
-					log.Fatal(err.Error())
-				} */
+
 				ingestafruizioni(Hash, clientip, idvideoteca, speed)
 			}
 		}
