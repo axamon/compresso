@@ -17,14 +17,14 @@ import (
 // 	// [18/Jun/2016:23:59:59.860+0000] http://vodos.oscdn.skycdn.it/RM/live/skycinema/MOVIE/skycinema-MVXY0000000000576770-201606141912150000.nff 185.26.141.212/ 185.26.141.212 41501 41501 979329565 100 5.515 1 206 video/nff No - 44909|HTTP|Sat_Jun_18_23:59:59_2016|0|1 SUCCESS_FINISH - - -
 // }
 
-func exampleLeggizip() {
+/* func exampleLeggizip() {
 	// var wg sync.WaitGroup
 	// fmt.Println(Test)
 	// wg.Add(1)
 	leggizip2("we_ingestlog_clf_81.74.224.5_20160619_000000_52234.gz")
 	// wg.Wait()
 	// Output: 96 <nil>
-}
+} */
 
 func BenchmarkLeggizip(b *testing.B) {
 

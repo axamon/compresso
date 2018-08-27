@@ -41,22 +41,7 @@ type Accesslog struct {
 
 var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
 
-type Fruizioni struct {
-	Hashfruizione map[string]bool
-	Clientip      map[string]string
-	Idvideoteca   map[string]string
-	Details       map[string][]float64 `json:"-"`
-}
 
-type Fruizioniexport struct {
-	Hashfruizione string `json:"-"` //Non permette a json di esportare il campo
-	Clientip      string
-	Idvideoteca   string
-	Edgeip        string
-	Giorno        string
-	Orario        string
-	Errori        int
-}
 
 //F contiene tutte le informazioni delle varie fruizioni
 //è la variabile che verrà resa persistente su disco
@@ -104,13 +89,6 @@ func main() {
 	}
 
 	wg.Wait() //Attende che terminino tutte le go routines
-
-	/* var b bytes.Buffer
-	e := gob.NewEncoder(&b)
-	if err := e.Encode(Contatori); err != nil {
-		panic(err)
-	}
-	fmt.Println("Encoded Struct ", b) */
 
 	//Salva i dati in Contatori dentro il gobfile
 	err = save(gobfile, F)
