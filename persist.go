@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-const gobfile = "./contatori.gob"
+const gobfile = "./gob/contatori.gob"
 
 var gobfileLock sync.RWMutex
 

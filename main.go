@@ -19,29 +19,7 @@ const (
 	bitstoMB = 0.000000125
 )
 
-//Accesslog tipo per transaction
-type Accesslog struct {
-	Hash      string
-	Type      string
-	Time      string
-	TTS       int
-	SEIp      string
-	Clientip  string
-	Request   string
-	Bytes     int
-	Method    string
-	URL       string
-	Urlschema string
-	Urlhost   string
-	Urlpath   string
-	Urlquery  string
-	Mime      string
-	Ua        string
-}
-
 var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
-
-
 
 //F contiene tutte le informazioni delle varie fruizioni
 //è la variabile che verrà resa persistente su disco

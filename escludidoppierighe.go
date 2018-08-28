@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-const hashlinefile = "./hashline.gob"
+const hashlinefile = "./gob/hashline.gob"
 
 var escludidoppionilock sync.RWMutex
 
