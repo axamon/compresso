@@ -19,6 +19,16 @@ const (
 	bitstoMB = 0.000000125
 )
 
+func init() {
+	dir := "./gob"
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
 
 //F contiene tutte le informazioni delle varie fruizioni
