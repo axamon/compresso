@@ -40,7 +40,6 @@ func init() {
 		}
 		f.Close()
 	}
-	//flag.Float64Var(&s, "sigma", 3, "sigma value")
 
 }
 
