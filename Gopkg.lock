@@ -2,21 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/go-redis/redis"
-  packages = [
-    ".",
-    "internal",
-    "internal/consistenthash",
-    "internal/hashtag",
-    "internal/pool",
-    "internal/proto",
-    "internal/singleflight",
-    "internal/util"
-  ]
-  revision = "480db94d33e6088e08d628833b6c0705451d24bb"
-  version = "v6.13.2"
-
-[[projects]]
   name = "github.com/klauspost/compress"
   packages = ["flate"]
   revision = "b939724e787a27c0005cabe3f78e7ed7987ac74f"
@@ -46,9 +31,29 @@
   packages = ["."]
   revision = "5582a674300c427060d06980c142aeb52ed20040"
 
+[[projects]]
+  branch = "master"
+  name = "gonum.org/v1/gonum"
+  packages = [
+    "blas",
+    "blas/blas64",
+    "blas/gonum",
+    "floats",
+    "internal/asm/c128",
+    "internal/asm/f32",
+    "internal/asm/f64",
+    "internal/math32",
+    "lapack",
+    "lapack/gonum",
+    "lapack/lapack64",
+    "mat",
+    "stat"
+  ]
+  revision = "95e9db9a70fd50632d7723641395d92a1f134d06"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "27972dad1359195aeb535649e50e864bd4ddfa34771e159f5aad66f45aeb6994"
+  inputs-digest = "4e7fc0453f32f74a155a788200b4c25837b53354b71cace18e859d6c9debb135"
   solver-name = "gps-cdcl"
   solver-version = 1
