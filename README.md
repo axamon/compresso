@@ -1,7 +1,7 @@
 
 # Compresso
 
-Test per deflate di file gzippati con GO
+Analysis of CDN logs to track down streaming errors.
 
 ## Status
 
