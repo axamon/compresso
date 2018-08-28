@@ -19,7 +19,10 @@ func leggizip2(file string) {
 
 	f, err := os.Open(file)
 	if err != nil {
-		log.Fatal(err)
+		if strings.Contains(file, "sigma=") {
+			return
+		}
+		log.Println(err)
 	}
 	defer f.Close()
 
@@ -27,7 +30,7 @@ func leggizip2(file string) {
 	gr, err := pgzip.NewReaderN(f, 4096, 100) //sfrutta il gzip con steroide che legge nel futuro per andare più veloce assai
 
 	if err != nil { //se però si impippa qualcosa allora blocca tutto
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 		os.Exit(1)
 	}
 

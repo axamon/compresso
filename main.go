@@ -3,6 +3,8 @@ package main
 import (
 	"sort"
 
+	"github.com/spf13/viper"
+
 	"gonum.org/v1/gonum/stat"
 
 	//"compress/gzip"
@@ -27,6 +29,19 @@ func init() {
 			panic(err)
 		}
 	}
+	if _, err := os.Stat("compresso.yaml"); os.IsNotExist(err) {
+		f, err := os.Create("compresso.yaml")
+		if err != nil {
+			panic(err)
+		}
+		_, err = f.WriteString("sigma: \"3\"")
+		if err != nil {
+			panic(err)
+		}
+		f.Close()
+	}
+	//flag.Float64Var(&s, "sigma", 3, "sigma value")
+
 }
 
 var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
@@ -35,7 +50,17 @@ var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
 //è la variabile che verrà resa persistente su disco
 var F = Fruizioni{}
 
+var sigma float64
+
 func main() {
+	v := viper.New()
+	v.SetConfigFile("compresso.yaml")
+	err := v.ReadInConfig()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	sigma := v.GetFloat64("sigma")
+	//flag.Parse()
 
 	hashline = make(map[string]bool)
 
@@ -46,7 +71,7 @@ func main() {
 	}
 
 	//Carico dentro hashline i dati salvati precedentemente
-	err := load(hashlinefile, &hashline) //Carica in Contatori i dati salvati sul gobfile
+	err = load(hashlinefile, &hashline) //Carica in Contatori i dati salvati sul gobfile
 	if err != nil {
 		fmt.Println(err.Error()) //se da errore forse manca il file... non importa se è il primo avvio
 	}
@@ -95,39 +120,37 @@ func main() {
 	//fmt.Println(FruizioniDecoded)
 
 	numFruizioni := len(FruizioniDecoded.Hashfruizione)
-	fmt.Println(numFruizioni)
+	fmt.Printf("Verificate %v fruizioni\n", numFruizioni)
 	for record := range FruizioniDecoded.Hashfruizione {
 
-		fmt.Println(record)
-		fmt.Println(FruizioniDecoded.Clientip[record])
-		fmt.Println(FruizioniDecoded.Idvideoteca[record])
+		//fmt.Println(record)
+		//fmt.Println(FruizioniDecoded.Clientip[record])
+		//fmt.Println(FruizioniDecoded.Idvideoteca[record])
 		speeds := FruizioniDecoded.Details[record]
 		mean := stat.Mean(FruizioniDecoded.Details[record], nil)
-		fmt.Printf("Media: %.3f\n", stat.Mean(speeds, nil))
+		//fmt.Printf("Media: %.3f\n", stat.Mean(speeds, nil))
 		//harmonicmean := stat.HarmonicMean(speeds, nil)
-		fmt.Printf("MediaArmonica: %.3f\n", stat.HarmonicMean(speeds, nil))
-		mode, _ := stat.Mode(speeds, nil)
-		fmt.Printf("Moda: %.3f\n", mode)
+		//fmt.Printf("MediaArmonica: %.3f\n", stat.HarmonicMean(speeds, nil))
+		//mode, _ := stat.Mode(speeds, nil)
+		//fmt.Printf("Moda: %.3f\n", mode)
 		nums := speeds
 		sort.Float64s(nums) //Mette in ordine nums
-		fmt.Printf("Mediana: %.3f\n", stat.Quantile(0.5, stat.Empirical, nums, nil))
+		//fmt.Printf("Mediana: %.3f\n", stat.Quantile(0.5, stat.Empirical, nums, nil))
 		stdev := stat.StdDev(speeds, nil)
-		fmt.Printf("StDev: %.3f\n", stat.StdDev(speeds, nil))
-		fmt.Printf("Skew: %.3f\n", stat.Skew(speeds, nil))
-		fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(speeds, nil))
+		//fmt.Printf("StDev: %.3f\n", stat.StdDev(speeds, nil))
+		//fmt.Printf("Skew: %.3f\n", stat.Skew(speeds, nil))
+		//fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(speeds, nil))
 
-		fmt.Printf("NumChunks: %v\n", len(speeds))
+		//fmt.Printf("NumChunks: %v\n", len(speeds))
 		e := 0
 		for _, n := range nums {
-			var sigma float64
-			sigma = 1 //tot sigma di distanza
 			if (n-mean)/stdev < (-sigma * stdev) {
 				e++
 			}
 		}
 		if e > 0 {
 			//se sono presenti errori ne mostra il quantitativo
-			fmt.Printf("ERRORI: %d\n", e)
+			//fmt.Printf("ERRORI: %d\n", e)
 			fe := new(Fruizioniexport)
 			fe.Hashfruizione = record
 			fe.Clientip = FruizioniDecoded.Clientip[record]
@@ -140,9 +163,9 @@ func main() {
 				log.Fatal(err.Error())
 			}
 			fmt.Println(string(l))
-			fmt.Println()
+			//fmt.Println()
 		}
-		fmt.Println()
+		//fmt.Println()
 
 	}
 
