@@ -68,7 +68,7 @@ func BenchmarkLeggizip(b *testing.B) {
 		for _, file := range files {
 			fmt.Println(file)
 			wg.Add()
-			go leggizip2(file)
+			go leggizip2("examplelogs/" + file)
 		}
 
 		wg.Wait() //Attende che terminino tutte le go routines
