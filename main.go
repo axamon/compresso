@@ -66,7 +66,11 @@ func main() {
 	//se il file hashlinefile non esiste lo crea
 	//gobfile è il file dove verrà resa persistente
 	if _, err := os.Stat(hashlinefile); os.IsNotExist(err) {
-		os.Create(hashlinefile)
+		h, err := os.Create(hashlinefile)
+		h.Close()
+		if err != nil {
+			log.Printf("impossibile creare %s\n", hashlinefile)
+		}
 	}
 
 	//Carico dentro hashline i dati salvati precedentemente
