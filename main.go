@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os/signal"
 	"sort"
 
 	"github.com/spf13/viper"
@@ -79,6 +80,16 @@ func main() {
 		fmt.Println(err.Error()) //se da errore forse manca il file... non importa se è il primo avvio
 	}
 	defer save(hashlinefile, hashline)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	// Block until a signal is received.
+	go func() {
+		s := <-c
+		save(hashlinefile, hashline)
+		fmt.Println("Got signal:", s)
+	}()
 
 	F.Hashfruizione = make(map[string]bool)
 	F.Clientip = make(map[string]string)
