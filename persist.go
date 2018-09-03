@@ -10,7 +10,7 @@ import (
 
 const gobfile = "./gob/contatori.gob"
 
-var gobfileLock sync.RWMutex
+var gobfileLock = sync.RWMutex{}
 
 // Encode via Gob to file
 func save(path string, object interface{}) error {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +14,7 @@ var watcher *fsnotify.Watcher
 
 // Watch
 
-func watch() {
+func watch(ctx context.Context) {
 
 	// creates a new file watcher
 	watcher, _ = fsnotify.NewWatcher()
@@ -29,19 +30,22 @@ func watch() {
 	done := make(chan bool)
 
 	//
-	go func() {
-		for {
-			select {
-			// watch for events
-			case event := <-watcher.Events:
-				fmt.Printf("EVENT! %#v\n", event)
-
-				// watch for errors
-			case err := <-watcher.Errors:
-				fmt.Println("ERROR", err)
+	//go func() {
+	for {
+		select {
+		// watch for events
+		case event := <-watcher.Events:
+			if event.Op == 1 {
+				fmt.Printf("New file %s\n", event.Name)
 			}
+			//fmt.Printf("EVENT! %#v\n", event)
+
+			// watch for errors
+		case err := <-watcher.Errors:
+			fmt.Println("ERROR", err)
 		}
-	}()
+	}
+	//	}()
 
 	<-done
 }

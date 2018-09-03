@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"os/signal"
+	"runtime"
 	"sort"
 
 	"github.com/spf13/viper"
@@ -53,6 +55,24 @@ var F = Fruizioni{}
 var sigma float64
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hashline = make(map[string]bool)
+
+	// If ctrl+c is pressed it saves the situation and exit cleanly
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		s := <-c
+		fmt.Println("Got signal:", s)
+		ctx.Done()
+		wg.Wait() //Attende che terminino tutte le go routines
+		cancel()
+		save(hashlinefile, hashline)
+		os.Exit(0)
+	}()
+
 	v := viper.New()
 	v.SetConfigFile("compresso.yaml")
 	err := v.ReadInConfig()
@@ -61,8 +81,6 @@ func main() {
 	}
 	sigma := v.GetFloat64("sigma")
 	//flag.Parse()
-
-	hashline = make(map[string]bool)
 
 	//se il file hashlinefile non esiste lo crea
 	//gobfile è il file dove verrà resa persistente
@@ -81,15 +99,8 @@ func main() {
 	}
 	defer save(hashlinefile, hashline)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-
-	// Block until a signal is received.
-	go func() {
-		s := <-c
-		save(hashlinefile, hashline)
-		fmt.Println("Got signal:", s)
-	}()
+	go watch(ctx)
+	//time.Sleep(10 * time.Second)
 
 	F.Hashfruizione = make(map[string]bool)
 	F.Clientip = make(map[string]string)
@@ -112,7 +123,7 @@ func main() {
 	for _, file := range os.Args[1:] {
 		fmt.Println(file)
 		wg.Add()
-		go leggizip2(file)
+		go leggizip2(ctx, file)
 	}
 
 	wg.Wait() //Attende che terminino tutte le go routines
@@ -183,5 +194,8 @@ func main() {
 
 	}
 
-	return
+	//return
+	runtime.Goexit()
+
+	fmt.Println("Exit")
 }

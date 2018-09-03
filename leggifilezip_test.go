@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -27,6 +28,8 @@ import (
 } */
 
 func BenchmarkLeggizip(b *testing.B) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	//var wg sync.WaitGroup
 	for n := 0; n < b.N; n++ {
@@ -68,7 +71,7 @@ func BenchmarkLeggizip(b *testing.B) {
 		for _, file := range files {
 			fmt.Println(file)
 			wg.Add()
-			go leggizip2("examplelogs/" + file)
+			go leggizip2(ctx, "examplelogs/"+file)
 		}
 
 		wg.Wait() //Attende che terminino tutte le go routines

@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"compress/gzip"
+	"context"
 	"fmt"
 	"log"
 	"net/url"
@@ -9,30 +11,36 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-
-	"github.com/klauspost/pgzip"
 )
 
-func leggizip2(file string) {
+func leggizip2(ctx context.Context, file string) {
 	defer wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
 
 	f, err := os.Open(file)
-	if err != nil {
-		if strings.Contains(file, "sigma=") {
-			return
-		}
-		log.Println(err)
-	}
 	defer f.Close()
+	if err != nil {
+		log.Println(err.Error())
+	}
 
-	// gr, err := gzip.NewReader(f)
-	gr, err := pgzip.NewReaderN(f, 4096, 100) //sfrutta il gzip con steroide che legge nel futuro per andare più veloce assai
-
+	gr, err := gzip.NewReader(f)
+	//gr, err := pgzip.NewReaderN(f, 4096, 100) //sfrutta il gzip con steroide che legge nel futuro per andare più veloce assai
+	defer gr.Close()
 	if err != nil { //se però si impippa qualcosa allora blocca tutto
 		log.Println(err.Error())
-		os.Exit(1)
+		return
 	}
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				f.Close()
+				wg.Done()
+				return // returning not to leak the goroutine
+			}
+		}
+	}()
 
 	fileelements := strings.Split(file, "_") //prende il nome del file di log e recupera i campi utili
 	Type := fileelements[1]                  //qui prede il tipo di log
@@ -44,7 +52,7 @@ func leggizip2(file string) {
 		scan := bufio.NewScanner(gr)
 		for scan.Scan() {
 			line := scan.Text()
-			err := escludidoppioni(line)
+			err := escludidoppioni(ctx, line)
 			if err != nil {
 				continue
 			}
@@ -110,13 +118,13 @@ func leggizip2(file string) {
 					log.Fatal(err.Error())
 				}
 				//bitrateMB := bitrate * bitstoMB
-				Hash := md5sumOfString(clientip + idvideoteca + ua)
+				Hash := md5sumOfString(ctx, clientip+idvideoteca+ua)
 
 				ingestafruizioni(Hash, clientip, idvideoteca, speed)
 			}
 			if ok := strings.Contains(Urlpath, "DASH"); ok == true { //Prende solo i chunk DASH
 				idvideoteca := pezziurl[6]
-				Hash := md5sumOfString(clientip + idvideoteca + ua)
+				Hash := md5sumOfString(ctx, clientip+idvideoteca+ua)
 
 				ingestafruizioni(Hash, clientip, idvideoteca, speed)
 			}
