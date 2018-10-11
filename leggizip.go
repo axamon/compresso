@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"compress/gzip"
 	"context"
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -19,7 +18,7 @@ func leggizip2(ctx context.Context, file string) {
 
 	err := escludidoppioni(ctx, file)
 	if err != nil {
-		fmt.Println("file già elaborato")
+		log.Printf("file %s già elaborato", file)
 		return
 	}
 
@@ -37,18 +36,6 @@ func leggizip2(ctx context.Context, file string) {
 		return
 	}
 
-	/* go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				gr.Close()
-				f.Close()
-				wg.Done()
-				return // returning not to leak the goroutine
-			}
-		}
-	}() */
-
 	fileelements := strings.Split(file, "_") //prende il nome del file di log e recupera i campi utili
 	Type := fileelements[1]                  //qui prede il tipo di log
 	edgeip := fileelements[3]
@@ -59,10 +46,10 @@ func leggizip2(ctx context.Context, file string) {
 		scan := bufio.NewScanner(gr)
 		for scan.Scan() {
 			line := scan.Text()
-			err := escludidoppioni(ctx, line)
+			/* err := escludidoppioni(ctx, line) //tocca toglierlo che crea file troppo grossi co tutti sti hash
 			if err != nil {
 				continue
-			}
+			} */
 			if !strings.HasPrefix(line, "[") { //se la linea non inzia con [ allora salta
 				continue
 			}
