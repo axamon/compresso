@@ -7,10 +7,13 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 )
+
+var re = regexp.MustCompile(`(\bcb.ticdn.it\b|\bvodm0.ticdn.it\b)`)
 
 func leggizip2(ctx context.Context, file string) {
 	defer wg.Done()
@@ -53,7 +56,13 @@ func leggizip2(ctx context.Context, file string) {
 			if !strings.HasPrefix(line, "[") { //se la linea non inzia con [ allora salta
 				continue
 			}
+
 			s := strings.Split(line, "\t")
+
+			if len(s) < 8 || !re.MatchString(s[6]) { //se s[6] il campo url non contiene quanto compilato in re ignora la riga
+				continue
+			}
+
 			u, err := url.Parse(s[6]) //parsa la URL nelle sue componenti
 			if err != nil {
 				log.Fatal(err)
@@ -84,7 +93,7 @@ func leggizip2(ctx context.Context, file string) {
 
 			speed = (bytes / tts)
 			clientip := s[2]
-			//status := s[3]
+			//status := s[3] //da usare per errori 40x e 50x
 			ua := s[8]
 
 			//fmt.Println(Urlschema)
@@ -98,7 +107,7 @@ func leggizip2(ctx context.Context, file string) {
 			if len(pezziurl) < 11 {
 				continue
 			}
-			if ok := strings.HasPrefix(Urlpath, "/videoteca"); ok == true {
+			if ok := strings.Contains(Urlpath, "video="); ok == true { //solo i chunk video
 				//fmt.Println(pezziurl)
 				//fmt.Println(Urlpath)
 				idvideoteca := pezziurl[6]
