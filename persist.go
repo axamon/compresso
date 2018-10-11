@@ -14,14 +14,15 @@ var gobfileLock = sync.RWMutex{}
 
 // Encode via Gob to file
 func save(path string, object interface{}) error {
-	gobfileLock.Lock()
-	defer gobfileLock.Unlock()
 	file, err := os.Create(path)
+	defer file.Close()
 	if err == nil {
 		encoder := gob.NewEncoder(file)
+		gobfileLock.Lock()
 		encoder.Encode(object)
+		gobfileLock.Unlock()
 	}
-	file.Close()
+
 	return err
 }
 

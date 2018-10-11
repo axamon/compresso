@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"os/signal"
-	"runtime"
 	"sort"
 
 	"github.com/spf13/viper"
@@ -25,19 +24,19 @@ const (
 )
 
 func init() {
-	dir := "./gob"
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
+	dir := "./gob"                                  //directory di storage dei file gob
+	if _, err := os.Stat(dir); os.IsNotExist(err) { //se la directory non esiste la crea
 		err = os.MkdirAll(dir, 0755)
 		if err != nil {
 			panic(err)
 		}
 	}
-	if _, err := os.Stat("compresso.yaml"); os.IsNotExist(err) {
+	if _, err := os.Stat("compresso.yaml"); os.IsNotExist(err) { //se il file di configurazione non esiste lo crea
 		f, err := os.Create("compresso.yaml")
 		if err != nil {
 			panic(err)
 		}
-		_, err = f.WriteString("sigma: \"3\"")
+		_, err = f.WriteString("sigma: \"3\"") //insersce il parametro sigma a 3 come default
 		if err != nil {
 			panic(err)
 		}
@@ -55,21 +54,31 @@ var F = Fruizioni{}
 var sigma float64
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background()) //crea un context globale
 	defer cancel()
 
+	//hashline tiene l'hash di ogni singolo linea di log
 	hashline = make(map[string]bool)
 
 	// If ctrl+c is pressed it saves the situation and exit cleanly
-	c := make(chan os.Signal, 1)
+	c := make(chan os.Signal, 1) //crea un canale con buffer unitario
 	signal.Notify(c, os.Interrupt)
+
+	//Goroutine per la gestione dell'uscita dal programma tramite ctrl+c
 	go func() {
 		s := <-c
 		fmt.Println("Got signal:", s)
 		ctx.Done()
-		wg.Wait() //Attende che terminino tutte le go routines
-		cancel()
-		save(hashlinefile, hashline)
+		//wg.Wait() //Attende che terminino tutte le go routines
+		cancel() //fa terminare il context background
+		//salva le mappe come file .gob
+		err := save(hashlinefile, hashline)
+		if err != nil {
+			fmt.Printf("Uscita con errori: %s\n", err.Error())
+			os.Exit(1)
+		}
+		//esce pulito
+		fmt.Println("Uscita pulita")
 		os.Exit(0)
 	}()
 
@@ -99,12 +108,15 @@ func main() {
 	}
 	defer save(hashlinefile, hashline)
 
-	go watch(ctx)
+	//go watch(ctx)
 	//time.Sleep(10 * time.Second)
 
 	F.Hashfruizione = make(map[string]bool)
 	F.Clientip = make(map[string]string)
 	F.Idvideoteca = make(map[string]string)
+	F.Edgeip = make(map[string]string)
+	F.Giorno = make(map[string]string)
+	F.Orario = make(map[string]string)
 	F.Details = make(map[string][]float64)
 
 	//se il file gobfile non esiste lo crea
@@ -121,9 +133,11 @@ func main() {
 
 	//Per tutti i file passati come argomento esegue una goroutine
 	for _, file := range os.Args[1:] {
-		fmt.Println(file)
+		//fmt.Println(file)
 		wg.Add()
 		go leggizip2(ctx, file)
+		//	file := "examplelogs/we_accesslog_clf_81.74.227.47_20181006_033600_12216.gz"
+		//leggizip2(ctx, file)
 	}
 
 	wg.Wait() //Attende che terminino tutte le go routines
@@ -159,6 +173,7 @@ func main() {
 		//mode, _ := stat.Mode(speeds, nil)
 		//fmt.Printf("Moda: %.3f\n", mode)
 		nums := speeds
+		//fmt.Println(len(nums))
 		sort.Float64s(nums) //Mette in ordine nums
 		//fmt.Printf("Mediana: %.3f\n", stat.Quantile(0.5, stat.Empirical, nums, nil))
 		stdev := stat.StdDev(speeds, nil)
@@ -180,7 +195,9 @@ func main() {
 			fe.Hashfruizione = record
 			fe.Clientip = FruizioniDecoded.Clientip[record]
 			fe.Idvideoteca = FruizioniDecoded.Idvideoteca[record]
-			//e.Giorno = Giorno
+			fe.Edgeip = FruizioniDecoded.Edgeip[record]
+			fe.Giorno = FruizioniDecoded.Giorno[record]
+			fe.Orario = FruizioniDecoded.Orario[record]
 			fe.Errori = e
 
 			l, err := json.Marshal(fe)
@@ -194,8 +211,8 @@ func main() {
 
 	}
 
-	//return
-	runtime.Goexit()
+	return
+	//runtime.Goexit()
 
-	fmt.Println("Exit")
+	//fmt.Println("Exit")
 }

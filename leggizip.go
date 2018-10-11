@@ -17,6 +17,12 @@ func leggizip2(ctx context.Context, file string) {
 	defer wg.Done()
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1) //esegue una go routine su tutti i processori -1
 
+	err := escludidoppioni(ctx, file)
+	if err != nil {
+		fmt.Println("file già elaborato")
+		return
+	}
+
 	f, err := os.Open(file)
 	defer f.Close()
 	if err != nil {
@@ -31,22 +37,23 @@ func leggizip2(ctx context.Context, file string) {
 		return
 	}
 
-	go func() {
+	/* go func() {
 		for {
 			select {
 			case <-ctx.Done():
+				gr.Close()
 				f.Close()
 				wg.Done()
 				return // returning not to leak the goroutine
 			}
 		}
-	}()
+	}() */
 
 	fileelements := strings.Split(file, "_") //prende il nome del file di log e recupera i campi utili
 	Type := fileelements[1]                  //qui prede il tipo di log
-	/* SEIp := fileelements[3]
-	Giorno := fileelements[4]
-	Orario := fileelements[5] //qui prende l'ip della cache */
+	edgeip := fileelements[3]
+	giorno := fileelements[4]
+	orario := fileelements[5] //qui prende l'ip della cache
 
 	if Type == "accesslog" { //se il tipo di log è "accesslog" allora fa qualcosa che ancora non ho finito di fare
 		scan := bufio.NewScanner(gr)
@@ -71,7 +78,7 @@ func leggizip2(ctx context.Context, file string) {
 
 			//t, err := time.Parse("[02/Jan/2006:15:04:05.000-0700]", s[0]) //converte i timestamp come piacciono a me
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err.Error())
 			}
 			//	Time := t.Unix()
 			//Time := t.Format("2006-01-02T15:04:05.000Z") //idem con patate questo è lo stracazzuto ISO8601 meglio c'è solo epoch
@@ -101,10 +108,10 @@ func leggizip2(ctx context.Context, file string) {
 			//Urlfragment := u.Fragment
 			pezziurl := strings.Split(Urlpath, "/")
 			//fmt.Println(pezziurl)
-			/* if len(pezziurl) < 11 {
+			if len(pezziurl) < 11 {
 				continue
-			} */
-			if ok := strings.HasPrefix(Urlpath, "videoteca"); ok == true { //Prende solo i chunk video per
+			}
+			if ok := strings.HasPrefix(Urlpath, "/videoteca"); ok == true {
 				//fmt.Println(pezziurl)
 				//fmt.Println(Urlpath)
 				idvideoteca := pezziurl[6]
@@ -120,16 +127,15 @@ func leggizip2(ctx context.Context, file string) {
 				//bitrateMB := bitrate * bitstoMB
 				Hash := md5sumOfString(ctx, clientip+idvideoteca+ua)
 
-				ingestafruizioni(Hash, clientip, idvideoteca, speed)
+				ingestafruizioni(Hash, clientip, idvideoteca, edgeip, giorno, orario, speed)
 			}
 			if ok := strings.Contains(Urlpath, "DASH"); ok == true { //Prende solo i chunk DASH
 				idvideoteca := pezziurl[6]
 				Hash := md5sumOfString(ctx, clientip+idvideoteca+ua)
 
-				ingestafruizioni(Hash, clientip, idvideoteca, speed)
+				ingestafruizioni(Hash, clientip, idvideoteca, edgeip, giorno, orario, speed)
 			}
 		}
 	}
-
 	return //terminata la Go routine!!! :)
 }

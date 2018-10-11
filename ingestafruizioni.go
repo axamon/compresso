@@ -3,18 +3,24 @@ package main
 import "sync"
 
 var lock sync.RWMutex
-var detailslock sync.RWMutex
 
-func ingestafruizioni(hashfruizione, clientip, idvideoteca string, speed float64) {
+//var detailslock sync.RWMutex
+
+func ingestafruizioni(hashfruizione, clientip, idvideoteca, edgeip, giorno, orario string, speed float64) {
+	lock.Lock()
+	defer lock.Unlock()
 	if F.Hashfruizione[hashfruizione] == false {
-		lock.Lock()
 		F.Hashfruizione[hashfruizione] = true
 		F.Clientip[hashfruizione] = clientip
 		F.Idvideoteca[hashfruizione] = idvideoteca
-		lock.Unlock()
+		F.Edgeip[hashfruizione] = edgeip
+		F.Giorno[hashfruizione] = giorno
+		F.Orario[hashfruizione] = orario
 	}
-	detailslock.Lock()
+
+	//detailslock.Lock()
 	F.Details[hashfruizione] = append(F.Details[hashfruizione], speed)
-	detailslock.Unlock()
+	//detailslock.Unlock()
+
 	return
 }
