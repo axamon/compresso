@@ -46,6 +46,10 @@ func leggizip2(ctx context.Context, file string) {
 	orario := fileelements[5] //qui prende l'ip della cache
 
 	if Type == "accesslog" { //se il tipo di log è "accesslog" allora fa qualcosa che ancora non ho finito di fare
+
+		log.Printf("Elaboro log %s", file)
+		defer log.Printf("Finita elaborazione log %s", file)
+
 		scan := bufio.NewScanner(gr)
 		for scan.Scan() {
 			line := scan.Text()
@@ -111,25 +115,28 @@ func leggizip2(ctx context.Context, file string) {
 				//fmt.Println(pezziurl)
 				//fmt.Println(Urlpath)
 				idvideoteca := pezziurl[6]
+				//tipocodifica := pezziurl[7]
+				idaps := pezziurl[8]
 				//fmt.Println(idvideoteca)
 				//encoding := pezziurl[10]
 				//fmt.Println(encoding)
 				//re := regexp.MustCompile(`QualityLevels\(([0-9]+)\)$`)
 				//bitratestr := re.FindStringSubmatch(encoding)[1]
 				//bitrate, _ := strconv.ParseFloat(bitratestr, 8)
-				if err != nil {
+				/* if err != nil {
 					log.Fatal(err.Error())
-				}
+				} */
 				//bitrateMB := bitrate * bitstoMB
 				Hash := md5sumOfString(ctx, clientip+idvideoteca+ua)
 
-				ingestafruizioni(Hash, clientip, idvideoteca, edgeip, giorno, orario, speed)
+				ingestafruizioni(Hash, clientip, idvideoteca, idaps, edgeip, giorno, orario, speed)
 			}
 			if ok := strings.Contains(Urlpath, "DASH"); ok == true { //Prende solo i chunk DASH
 				idvideoteca := pezziurl[6]
+				idaps := pezziurl[8]
 				Hash := md5sumOfString(ctx, clientip+idvideoteca+ua)
 
-				ingestafruizioni(Hash, clientip, idvideoteca, edgeip, giorno, orario, speed)
+				ingestafruizioni(Hash, clientip, idvideoteca, idaps, edgeip, giorno, orario, speed)
 			}
 		}
 	}

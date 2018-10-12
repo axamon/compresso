@@ -3,15 +3,9 @@ package main
 import (
 	"context"
 	"os/signal"
-	"sort"
-
-	"github.com/spf13/viper"
-
-	"gonum.org/v1/gonum/stat"
 
 	//"compress/gzip"
 
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -51,8 +45,6 @@ var wg = sizedwaitgroup.New(200) //massimo numero di go routine per volta
 //è la variabile che verrà resa persistente su disco
 var F = Fruizioni{}
 
-var sigma float64
-
 func main() {
 	ctx, cancel := context.WithCancel(context.Background()) //crea un context globale
 	defer cancel()
@@ -82,15 +74,6 @@ func main() {
 		os.Exit(0)
 	}()
 
-	v := viper.New()
-	v.SetConfigFile("compresso.yaml")
-	err := v.ReadInConfig()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	sigma := v.GetFloat64("sigma")
-	//flag.Parse()
-
 	//se il file hashlinefile non esiste lo crea
 	//gobfile è il file dove verrà resa persistente
 	if _, err := os.Stat(hashlinefile); os.IsNotExist(err) {
@@ -102,7 +85,7 @@ func main() {
 	}
 
 	//Carico dentro hashline i dati salvati precedentemente
-	err = load(hashlinefile, &hashline) //Carica in Contatori i dati salvati sul gobfile
+	err := load(hashlinefile, &hashline) //Carica in Contatori i dati salvati sul gobfile
 	if err != nil {
 		fmt.Println(err.Error()) //se da errore forse manca il file... non importa se è il primo avvio
 	}
@@ -114,6 +97,7 @@ func main() {
 	F.Hashfruizione = make(map[string]bool)
 	F.Clientip = make(map[string]string)
 	F.Idvideoteca = make(map[string]string)
+	F.Idaps = make(map[string]string)
 	F.Edgeip = make(map[string]string)
 	F.Giorno = make(map[string]string)
 	F.Orario = make(map[string]string)
@@ -159,8 +143,8 @@ func main() {
 	//fmt.Println(FruizioniDecoded)
 
 	numFruizioni := len(FruizioniDecoded.Hashfruizione)
-	fmt.Printf("Verificate %v fruizioni\n", numFruizioni)
-	for record := range FruizioniDecoded.Hashfruizione {
+	fmt.Printf("Elaborate %v fruizioni\n", numFruizioni)
+	/* 	for record := range FruizioniDecoded.Hashfruizione {
 
 		//fmt.Println(record)
 		//fmt.Println(FruizioniDecoded.Clientip[record])
@@ -195,6 +179,7 @@ func main() {
 			fe.Hashfruizione = record
 			fe.Clientip = FruizioniDecoded.Clientip[record]
 			fe.Idvideoteca = FruizioniDecoded.Idvideoteca[record]
+			fe.Idaps = FruizioniDecoded.Idaps[record]
 			fe.Edgeip = FruizioniDecoded.Edgeip[record]
 			fe.Giorno = FruizioniDecoded.Giorno[record]
 			fe.Orario = FruizioniDecoded.Orario[record]
@@ -209,7 +194,7 @@ func main() {
 		}
 		//fmt.Println()
 
-	}
+	} */
 
 	return
 	//runtime.Goexit()
