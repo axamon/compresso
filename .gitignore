@@ -1,4 +1,9 @@
+controllo
+controllotest
 compresso
 compresso.test
 profile_*.*
 gob/*.*
+controllo/gob/*.*
+*.png
+examplelogs/*.*

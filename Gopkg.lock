@@ -2,69 +2,99 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/Pallinder/go-randomdata"
+  packages = ["."]
+  revision = "15df0648130a623e418886f81b2aaecd0a00547b"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/ajstarks/svgo"
+  packages = ["."]
+  revision = "6ce6a3bcf6cde6c5007887677ebd148ec30f42a4"
+
+[[projects]]
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
   version = "v1.4.7"
 
 [[projects]]
-  name = "github.com/hashicorp/hcl"
+  branch = "master"
+  name = "github.com/golang/freetype"
   packages = [
     ".",
-    "hcl/ast",
-    "hcl/parser",
-    "hcl/printer",
-    "hcl/scanner",
-    "hcl/strconv",
-    "hcl/token",
-    "json/parser",
-    "json/scanner",
-    "json/token"
+    "raster",
+    "truetype"
   ]
-  revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
+  revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gonum/blas"
+  packages = [
+    ".",
+    "blas64",
+    "native",
+    "native/internal/math32"
+  ]
+  revision = "e7c5890b24cf6f3bb173f76e1bd71e80e887e3f9"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gonum/floats"
+  packages = ["."]
+  revision = "7de1f4ea7ab57890bfd427af68c7994cd67975d4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gonum/internal"
+  packages = [
+    "asm/f32",
+    "asm/f64"
+  ]
+  revision = "fda53f8d25717c07e2dac25758075a182bd74235"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gonum/lapack"
+  packages = [
+    ".",
+    "lapack64",
+    "native"
+  ]
+  revision = "f0b8b25edeceafb3a2752941c7bf0cda962df112"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gonum/matrix"
+  packages = [
+    ".",
+    "mat64"
+  ]
+  revision = "a41cc49d4c29f7451775f4379a5cc6ec6239dfab"
+
+[[projects]]
+  name = "github.com/jung-kurt/gofpdf"
+  packages = ["."]
+  revision = "14c1db30737a138f8d9797cffea58783892b2fae"
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/klauspost/compress"
-  packages = ["flate"]
-  revision = "b939724e787a27c0005cabe3f78e7ed7987ac74f"
-  version = "v1.4.0"
+  branch = "master"
+  name = "github.com/llgcode/draw2d"
+  packages = [
+    ".",
+    "draw2dbase",
+    "draw2dimg"
+  ]
+  revision = "f52c8a71aff06ab8df41843d33ab167b36c971cd"
 
 [[projects]]
-  name = "github.com/klauspost/cpuid"
+  name = "github.com/mxmCherry/movavg"
   packages = ["."]
-  revision = "ae7887de9fa5d2db4eaa8174a7eff2c1ac00f2da"
-  version = "v1.1"
-
-[[projects]]
-  name = "github.com/klauspost/crc32"
-  packages = ["."]
-  revision = "cb6bfca970f6908083f26f39a79009d608efd5cd"
-  version = "v1.1"
-
-[[projects]]
-  name = "github.com/klauspost/pgzip"
-  packages = ["."]
-  revision = "0bf5dcad4ada2814c3c00f996a982270bb81a506"
-  version = "v1.1"
-
-[[projects]]
-  name = "github.com/magiconair/properties"
-  packages = ["."]
-  revision = "c2353362d570a7bfa228149c62842019201cfb71"
-  version = "v1.8.0"
-
-[[projects]]
-  name = "github.com/mitchellh/mapstructure"
-  packages = ["."]
-  revision = "fa473d140ef3c6adf42d6b391fe76707f1f243c8"
-  version = "v1.0.0"
-
-[[projects]]
-  name = "github.com/pelletier/go-toml"
-  packages = ["."]
-  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
-  version = "v1.2.0"
+  revision = "409878dc0217b30656458b56ab1eb0843e346a99"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -73,56 +103,35 @@
   revision = "5582a674300c427060d06980c142aeb52ed20040"
 
 [[projects]]
-  name = "github.com/spf13/afero"
-  packages = [
-    ".",
-    "mem"
-  ]
-  revision = "787d034dfe70e44075ccc060d346146ef53270ad"
-  version = "v1.1.1"
-
-[[projects]]
-  name = "github.com/spf13/cast"
+  branch = "master"
+  name = "github.com/ryskiwt/go-kalman"
   packages = ["."]
-  revision = "8965335b8c7107321228e3e3702cab9832751bac"
-  version = "v1.2.0"
+  revision = "4f4ccfb3b9089bcb76f1b82e2f63f211fb22e25e"
 
 [[projects]]
   branch = "master"
-  name = "github.com/spf13/jwalterweatherman"
-  packages = ["."]
-  revision = "14d3d4c518341bea657dd8a226f5121c0ff8c9f2"
+  name = "golang.org/x/exp"
+  packages = ["rand"]
+  revision = "d8bb7a16721e319e95865be2662b889387204776"
 
 [[projects]]
-  name = "github.com/spf13/pflag"
-  packages = ["."]
-  revision = "9a97c102cda95a86cec2345a6f09f55a939babf5"
-  version = "v1.0.2"
-
-[[projects]]
-  name = "github.com/spf13/viper"
-  packages = ["."]
-  revision = "907c19d40d9a6c9bb55f040ff4ae45271a4754b9"
-  version = "v1.1.0"
+  branch = "master"
+  name = "golang.org/x/image"
+  packages = [
+    "draw",
+    "font",
+    "math/f64",
+    "math/fixed",
+    "tiff",
+    "tiff/lzw"
+  ]
+  revision = "991ec62608f3c0da01d400756917825d1e2fd528"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
   revision = "fa5fdf94c78965f1aa8423f0cc50b8b8d728b05a"
-
-[[projects]]
-  name = "golang.org/x/text"
-  packages = [
-    "internal/gen",
-    "internal/triegen",
-    "internal/ucd",
-    "transform",
-    "unicode/cldr",
-    "unicode/norm"
-  ]
-  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
-  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
@@ -145,14 +154,27 @@
   revision = "95e9db9a70fd50632d7723641395d92a1f134d06"
 
 [[projects]]
-  name = "gopkg.in/yaml.v2"
-  packages = ["."]
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
+  branch = "master"
+  name = "gonum.org/v1/plot"
+  packages = [
+    ".",
+    "palette",
+    "plotter",
+    "plotutil",
+    "tools/bezier",
+    "vg",
+    "vg/draw",
+    "vg/fonts",
+    "vg/vgeps",
+    "vg/vgimg",
+    "vg/vgpdf",
+    "vg/vgsvg"
+  ]
+  revision = "5f3c436ce602d80b13f2936b6bf149515198d6a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d16005e38a0a1bb35697b680f48aa6c9deb97d96c0be30679aefc322a3a28ad1"
+  inputs-digest = "2eba5fdfbfcb52ab20874ece5fe69592c425ee98d0408985d1e7375a6f1d50b1"
   solver-name = "gps-cdcl"
   solver-version = 1
