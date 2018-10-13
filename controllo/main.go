@@ -34,19 +34,8 @@ func init() {
 	if _, err := os.Stat(dir); os.IsNotExist(err) { //se la directory non esiste la crea
 		err = os.MkdirAll(dir, 0755)
 		if err != nil {
-			panic(err)
+			log.Panic(err.Error())
 		}
-	}
-	if _, err := os.Stat("compresso.yaml"); os.IsNotExist(err) { //se il file di configurazione non esiste lo crea
-		f, err := os.Create("compresso.yaml")
-		if err != nil {
-			panic(err)
-		}
-		_, err = f.WriteString("sigma: \"3\"") //insersce il parametro sigma a 3 come default
-		if err != nil {
-			panic(err)
-		}
-		f.Close()
 	}
 
 }

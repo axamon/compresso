@@ -31,23 +31,3 @@ type Fruizioni struct {
 	Orario        map[string]string
 	Details       map[string][]float64 `json:"-"`
 }
-
-//Fruizioniexport exports real number of errors found
-type Fruizioniexport struct {
-	Hashfruizione string `json:"-"` //Non permette a json di esportare il campo
-	Clientip      string
-	Idvideoteca   string
-	Idaps         string
-	Edgeip        string
-	Giorno        string
-	Orario        string
-	Media         float64
-	Stdev         float64
-	Moda          float64
-	Mediana       float64
-	MediaArmonica float64
-	Percentile95  float64
-	Skew          float64
-	Curtosi       float64
-	Errori        int
-}
