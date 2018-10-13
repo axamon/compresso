@@ -4,9 +4,18 @@ import (
 	"flag"
 	"sort"
 
+	"github.com/Pallinder/go-randomdata"
+
 	//"github.com/spf13/viper"
 
+	"github.com/gonum/matrix/mat64"
+	ma "github.com/mxmCherry/movavg"
+	kalman "github.com/ryskiwt/go-kalman"
 	"gonum.org/v1/gonum/stat"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
 
 	//"compress/gzip"
 
@@ -120,6 +129,7 @@ func main() {
 		//fmt.Printf("Skew: %.3f\n", stat.Skew(speeds, nil))
 		curtosi := stat.ExKurtosis(speeds, nil)
 		chisquare := stat.ChiSquare(nums, speeds)
+
 		//fmt.Printf("Curtosi: %.3f\n", stat.ExKurtosis(speeds, nil))
 
 		//fmt.Printf("NumChunks: %v\n", len(speeds))
@@ -167,6 +177,7 @@ func main() {
 				log.Fatal(err.Error())
 			}
 			fmt.Println(string(l))
+			kalmansample(speeds, stdev)
 			//fmt.Println()
 		}
 		//fmt.Println()
@@ -177,4 +188,94 @@ func main() {
 	//runtime.Goexit()
 
 	//fmt.Println("Exit")
+}
+
+func kalmansample(speeds []float64, stdev float64) {
+
+	sma3 := ma.ThreadSafe(ma.NewSMA(3)) //creo una moving average a 3
+	sma7 := ma.ThreadSafe(ma.NewSMA(7)) //creo una moving average a 3
+
+	//
+	// kalman filter
+	//
+
+	//sstd := 0.000001
+	sstd := stdev
+	ostd := 0.1
+
+	// trend model
+	filter, err := kalman.New(&kalman.Config{
+		F: mat64.NewDense(2, 2, []float64{2, -1, 1, 0}),
+		G: mat64.NewDense(2, 1, []float64{1, 0}),
+		Q: mat64.NewDense(1, 1, []float64{sstd}),
+		H: mat64.NewDense(1, 2, []float64{1, 0}),
+		R: mat64.NewDense(1, 1, []float64{ostd}),
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	n := len(speeds)
+	s := mat64.NewDense(1, n, nil)
+	x, dx := 0.0, 0.01
+	xary := make([]float64, 0, n)
+	yaryOrig := make([]float64, 0, n)
+	ma3 := make([]float64, 0, n)
+	ma7 := make([]float64, 0, n)
+
+	//aryOrig := speeds
+	for i := 0; i < n; i++ {
+		//y := math.Sin(x) + 0.1*(rand.NormFloat64()-0.5)
+		y := speeds[i]
+		s.Set(0, i, y)
+		x += dx
+
+		xary = append(xary, x)
+		yaryOrig = append(yaryOrig, y)
+		ma3 = append(ma3, sma3.Add(y)) //aggiung alla media mobile il nuovo valore e storo la media
+		ma7 = append(ma7, sma7.Add(y)) //aggiung alla media mobile il nuovo valore e storo la media
+		//Verifica anomalia
+		if ma3[i] < ma7[i] {
+			fmt.Fprint(os.Stderr, "violazione soglia")
+		}
+	}
+
+	filtered := filter.Filter(s)
+	yaryFilt := mat64.Row(nil, 0, filtered)
+
+	//
+	// plot
+	//
+
+	p, err := plot.New()
+	if err != nil {
+		panic(err)
+	}
+
+	err = plotutil.AddLinePoints(p,
+		"Original", generatePoints(xary, yaryOrig),
+		"Filtered", generatePoints(xary, yaryFilt),
+		"MA3", generatePoints(xary, ma3),
+		"MA7", generatePoints(xary, ma7),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Save the plot to a PNG file.
+	name := randomdata.FirstName(1) //da cambiare
+	if err := p.Save(8*vg.Inch, 4*vg.Inch, name+".png"); err != nil {
+		panic(err)
+	}
+}
+
+func generatePoints(x []float64, y []float64) plotter.XYs {
+	pts := make(plotter.XYs, len(x))
+
+	for i := range pts {
+		pts[i].X = x[i]
+		pts[i].Y = y[i]
+	}
+
+	return pts
 }
